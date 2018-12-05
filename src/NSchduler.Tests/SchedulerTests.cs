@@ -1,6 +1,7 @@
 ﻿using NSchduler.Tests.Jobs;
 using NScheduler.Core;
 using NUnit.Framework;
+using System.Threading.Tasks;
 
 namespace NSchduler.Tests
 {
@@ -10,7 +11,7 @@ namespace NSchduler.Tests
         private Scheduler scheduler;
 
         [Test]
-        public void Test()
+        public async Task Test()
         {
             scheduler = new Scheduler();
 
@@ -19,9 +20,8 @@ namespace NSchduler.Tests
 
             WriteDebugTextJob job = new WriteDebugTextJob("Hello!");
 
-            scheduler.ScheduleJob(job, schedule);
-            scheduler.Start();
-            scheduler.WaitShutDown();
+            await scheduler.ScheduleJob(job, schedule);
+            await scheduler.Run();
         }
     }
 }

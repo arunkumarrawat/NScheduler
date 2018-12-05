@@ -13,7 +13,6 @@ namespace NScheduler.Core
         private volatile bool isRunning;
         private volatile bool isPaused;
         private volatile bool isShutDown;
-        private Task _task;
 
         public Scheduler()
         {
@@ -22,13 +21,13 @@ namespace NScheduler.Core
         }
 
         /// <summary>
-        /// Starts scheduler 
+        /// Runs scheduler
         /// </summary>
         /// <returns></returns>
-        public void Start()
-        {         
+        public virtual Task Run()
+        {
             isRunning = true;
-            _task = Task.Run(() =>
+            return Task.Run(() =>
             {
                 while (isRunning)
                 {
@@ -63,6 +62,7 @@ namespace NScheduler.Core
 
                             if (nextJobTime > now)
                                     break;
+
                             jobsQueue.RemoveWhere(x => x.Id == jh.Id);
                             jh.Schedule.CalculateNextFireTime();
                             nextJobs.Add(jh);
@@ -79,7 +79,8 @@ namespace NScheduler.Core
                         {
                             try
                             {
-                                Task.Run(() => {
+                                Task.Run(() => 
+                                {
                                     nj.Context.Refresh();
                                     nj.Job.Execute(nj.Context);
                                 });
@@ -90,22 +91,25 @@ namespace NScheduler.Core
             });
         }
 
-        public virtual void ScheduleJob(IJob job, JobSchedule schedule)
+        public virtual Task ScheduleJob(IJob job, JobSchedule schedule)
         {
             if (isShutDown)
-                  throw new InvalidOperationException("Scheduler is shut down. Cannot enqueue a new job");
+                  throw new InvalidOperationException("Scheduler is shut down. Cannot schedule a new job");
+
             lock (jobsQueue)
                 jobsQueue.Add(new JobHolder(job, schedule));
+            return Task.CompletedTask;
         }
 
         /// <summary>
         /// Stops scheduler and all pending jobs
         /// </summary>
         /// <returns></returns>
-        public virtual void Stop()
+        public virtual Task Stop()
         {
             isRunning = false;
             isShutDown = true;
+            return Task.CompletedTask;
         }
 
         public virtual void Pause()
@@ -113,14 +117,6 @@ namespace NScheduler.Core
             if (isShutDown)
                   return;
             isPaused = true;
-        }
-
-        public void WaitShutDown()
-        {
-            if (_task == null)
-                return;
-
-            _task.Wait();
         }
     }
 }

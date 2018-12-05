@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace NScheduler.Core
 {
@@ -9,15 +8,28 @@ namespace NScheduler.Core
 
         public int Compare(JobHolder x, JobHolder y)
         {
-            var xNow = x.Schedule.GetNextFireTime() ?? DateTime.MaxValue;
-            var yNow = y.Schedule.GetNextFireTime() ?? DateTime.MaxValue;
+            var xFireTime = x.Schedule.GetNextFireTime();
+            var yFireTime = y.Schedule.GetNextFireTime();
 
-            if (xNow < yNow)
-                return -1;
-            if (xNow > yNow)
-                return 1;
+            if (xFireTime != null || yFireTime != null)
+            {
+                // if the first value is not defined,
+                // then it should go before next value,
+                // so the Scheduler could un-schedule associated 
+                // job faster
+                if (xFireTime == null)
+                    return -1;
 
-            return 0;
+                if (yFireTime == null)
+                    return 1;
+
+                if (xFireTime < yFireTime)
+                    return -1;
+                if (xFireTime > yFireTime)
+                    return 1;
+            }
+
+            return x.Id.CompareTo(y.Id);
         }
     }
 }
