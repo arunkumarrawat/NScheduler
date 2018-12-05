@@ -16,7 +16,7 @@ namespace NScheduler.Core
 
         public Scheduler()
         {
-            jobsQueue = new SortedSet<JobHolder>(NextFireTimeComparer.GetInstance());
+            jobsQueue = new SortedSet<JobHolder>(NextFireTimeComparator.GetInstance());
             nextJobs = new List<JobHolder>();
         }
 

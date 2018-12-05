@@ -46,7 +46,7 @@
     <Compile Include="JobContext.cs" />
     <Compile Include="JobHolder.cs" />
     <Compile Include="JobSchedule.cs" />
-    <Compile Include="NextFireTimeComparer.cs" />
+    <Compile Include="NextFireTimeComparator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scheduler.cs" />
     <Compile Include="TimeInterval.cs" />

@@ -1,0 +1,32 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace NScheduler.Core
+{
+    internal sealed class NextFireTimeComparator : IComparer<JobHolder>
+    {
+        public static NextFireTimeComparator GetInstance() => new NextFireTimeComparator();
+
+        public int Compare(JobHolder x, JobHolder y)
+        {
+            DateTime? xFireTime = x.Schedule.GetNextFireTime();
+            DateTime? yFireTime = y.Schedule.GetNextFireTime();
+
+            if (xFireTime != null || yFireTime != null)
+            {
+                if (xFireTime == null)
+                    return 1;
+
+                if (yFireTime == null)
+                    return -1;
+
+                if (xFireTime < yFireTime)
+                    return -1;
+                if (xFireTime > yFireTime)
+                    return 1;
+            }
+
+            return x.Id.CompareTo(y.Id);
+        }
+    }
+}
