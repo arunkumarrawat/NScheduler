@@ -1,14 +1,15 @@
 ﻿using NSchduler.Tests.Jobs;
 using NScheduler.Core;
-using Xunit;
+using NUnit.Framework;
 
 namespace NSchduler.Tests
 {
+    [TestFixture]
     public class SchedulerTests
     {
         private Scheduler scheduler;
 
-        [Fact]
+        [Test]
         public void Test()
         {
             scheduler = new Scheduler();
@@ -16,7 +17,7 @@ namespace NSchduler.Tests
             JobSchedule schedule = new JobSchedule();
             schedule.SetRepeatInterval(10, TimeInterval.Seconds);
 
-            WriteTextToConsoleJob job = new WriteTextToConsoleJob("Hello!");
+            WriteDebugTextJob job = new WriteDebugTextJob("Hello!");
 
             scheduler.EnqueueJob(job, schedule);
             scheduler.Start().Wait();

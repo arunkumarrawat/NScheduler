@@ -47,12 +47,16 @@ namespace NScheduler.Core
                     nextFireTime = next.AddHours(interval);
                     break;
                 case TimeInterval.Days:
-                    nextFireTime = next.AddHours(interval);
+                    nextFireTime = next.AddDays(interval);
+                    break;
+                case TimeInterval.Weeks:
+                    nextFireTime = next.AddDays(7 * interval);
                     break;
             }
         }
 
         private DateTime Now()
+
         {
             if (timeService != null)
                   return timeService.Now();

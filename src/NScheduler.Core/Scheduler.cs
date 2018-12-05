@@ -52,13 +52,18 @@ namespace NScheduler.Core
                             if (jh == null)
                                   break;
 
-                            jobsQueue.RemoveWhere(x => x.Id == jh.Id);
-                            var jobTime = jh.Schedule.GetNextFireTime();
+                            //jobsQueue.RemoveWhere(x => x.Id == jh.Id);
+                            var nextJobTime = jh.Schedule.GetNextFireTime();
            
-                            if (jobTime.HasValue)
+                            if (!nextJobTime.HasValue)
                             {
-                                if (jobTime > now)
-                                      break;
+                                jobsQueue.RemoveWhere(x => x.Id == jh.Id);
+                                continue;
+                            } else
+                            {
+                                if (nextJobTime > now)
+                                    break;
+                                jobsQueue.RemoveWhere(x => x.Id == jh.Id);
                                 nextJobs.Add(jh);
                             }
                         }

@@ -8,18 +8,28 @@ using System.Threading.Tasks;
 
 namespace NSchduler.Tests.Jobs
 {
-    internal class WriteTextToConsoleJob : IJob
+    internal class WriteDebugTextJob : IJob
     {
         private string text;
+        private bool includeTime;
  
-        internal WriteTextToConsoleJob(string text)
+        internal WriteDebugTextJob(string text, bool includeTime)
         {
             this.text = text;
+            this.includeTime = includeTime;
+        }
+
+        internal WriteDebugTextJob(string text)
+            : this(text, true)
+        {
         }
 
         public void Execute()
         {
-            Debug.WriteLine(text);
+            string line = text;
+            if (includeTime)
+                line = $"{line} ({DateTime.Now.ToString("HH:mm:ss")})";
+            Debug.WriteLine(line);
         }
-    }
+    }                                                                                  
 }
