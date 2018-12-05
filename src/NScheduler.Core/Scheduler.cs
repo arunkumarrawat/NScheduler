@@ -25,7 +25,7 @@ namespace NScheduler.Core
         /// </summary>
         /// <returns></returns>
         public Task Start()
-        {
+        {         
             isRunning = true;
             return Task.Run(() =>
             {
@@ -53,7 +53,7 @@ namespace NScheduler.Core
                                   break;
 
                             jobsQueue.RemoveWhere(x => x.Id == jh.Id);
-                            var jobTime = jh.Schedule.GetNextFireTime(now);
+                            var jobTime = jh.Schedule.GetNextFireTime();
            
                             if (jobTime.HasValue)
                             {
@@ -74,8 +74,8 @@ namespace NScheduler.Core
                         {
                             try
                             {
+                                nj.Schedule.OnJobTriggered(now);
                                 nj.Job.Execute();
-                                nj.Schedule.Refresh(now);
                             } catch { }
                         }
                     }

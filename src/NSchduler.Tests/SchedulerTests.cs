@@ -1,10 +1,5 @@
 ﻿using NSchduler.Tests.Jobs;
 using NScheduler.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace NSchduler.Tests
@@ -14,7 +9,7 @@ namespace NSchduler.Tests
         private Scheduler scheduler;
 
         [Fact]
-        public void test()
+        public void Test()
         {
             scheduler = new Scheduler();
 
