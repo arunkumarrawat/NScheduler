@@ -13,6 +13,7 @@ namespace NScheduler.Core
         private volatile bool isRunning;
         private volatile bool isPaused;
         private volatile bool isShutDown;
+        private Task _task;
 
         public Scheduler()
         {
@@ -24,10 +25,10 @@ namespace NScheduler.Core
         /// Starts scheduler 
         /// </summary>
         /// <returns></returns>
-        public Task Start()
+        public void Start()
         {         
             isRunning = true;
-            return Task.Run(() =>
+            _task = Task.Run(() =>
             {
                 while (isRunning)
                 {
@@ -38,7 +39,7 @@ namespace NScheduler.Core
                             sw.SpinOnce();
 
                         if (!isRunning)
-                              break;
+                               break;
                     }
 
                     var now = DateTime.Now;
@@ -52,7 +53,6 @@ namespace NScheduler.Core
                             if (jh == null)
                                   break;
 
-                            //jobsQueue.RemoveWhere(x => x.Id == jh.Id);
                             var nextJobTime = jh.Schedule.GetNextFireTime();
            
                             if (!nextJobTime.HasValue)
@@ -70,7 +70,7 @@ namespace NScheduler.Core
 
                         if (nextJobs.Count > 0)
                               foreach (var nextJob in nextJobs)
-                                  jobsQueue.Add(nextJob);
+                                 jobsQueue.Add(nextJob);
                     } // end LOCK
 
                     if (nextJobs.Count > 0)
@@ -79,9 +79,10 @@ namespace NScheduler.Core
                         {
                             try
                             {
-                                // todo: make job context
-                                // to keep history of job
-                                nj.Job.Execute();
+                                Task.Run(() => {
+                                    nj.Context.Refresh();
+                                    nj.Job.Execute(nj.Context);
+                                });
                             } catch { }
                         }
                     }
@@ -89,28 +90,37 @@ namespace NScheduler.Core
             });
         }
 
-        public Task EnqueueJob(IJob job, JobSchedule schedule)
+        public virtual void ScheduleJob(IJob job, JobSchedule schedule)
         {
+            if (isShutDown)
+                  throw new InvalidOperationException("Scheduler is shut down. Cannot enqueue a new job");
             lock (jobsQueue)
                 jobsQueue.Add(new JobHolder(job, schedule));
-            return Task.CompletedTask;
         }
 
         /// <summary>
         /// Stops scheduler and all pending jobs
         /// </summary>
         /// <returns></returns>
-        public Task Stop()
+        public virtual void Stop()
         {
             isRunning = false;
             isShutDown = true;
-            return Task.CompletedTask;
         }
 
-        public Task Pause()
+        public virtual void Pause()
         {
+            if (isShutDown)
+                  return;
             isPaused = true;
-            return Task.CompletedTask;
+        }
+
+        public void WaitShutDown()
+        {
+            if (_task == null)
+                return;
+
+            _task.Wait();
         }
     }
 }

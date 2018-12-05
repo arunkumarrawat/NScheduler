@@ -1,20 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NScheduler.Core
 {
     internal sealed class JobHolder
     {
         private readonly IJob job;
+        private readonly JobContext context;
         private readonly JobSchedule schedule;
         private readonly Guid id;
 
         public JobHolder(IJob job, JobSchedule schedule)
         {
             this.job = job;
+            this.context = new JobContext();
             this.schedule = schedule;
             this.id = Guid.NewGuid();
         }
@@ -23,7 +21,7 @@ namespace NScheduler.Core
         {
             var jh = obj as JobHolder;
             if (jh == null)
-                return false;
+                  return false;
             return id == jh.id;
         }
 
@@ -34,9 +32,11 @@ namespace NScheduler.Core
 
         public IJob Job => job;
 
+        public JobContext Context => context;
 
+        /// <summary>
+        /// Gets a unique identifier of an <see cref="IJob"/> instance
+        /// </summary>
         public Guid Id => id;
-
-
     }
 }

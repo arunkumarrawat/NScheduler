@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NScheduler.Core
+﻿namespace NScheduler.Core
 {
     /// <summary>
-    /// Interface of an abstract job
+    /// Interface of an abstract job to execute
     /// </summary>
     public interface IJob
     {
-        void Execute();
+        void Execute(JobContext context);
     }
 }

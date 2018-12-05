@@ -48,7 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Jobs\WriteTextToConsoleJob.cs" />
+    <Compile Include="Jobs\WriteDebugTextJob.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SchedulerTests.cs" />
   </ItemGroup>

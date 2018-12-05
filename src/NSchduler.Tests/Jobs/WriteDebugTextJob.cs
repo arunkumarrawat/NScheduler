@@ -1,17 +1,13 @@
 ﻿using NScheduler.Core;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NSchduler.Tests.Jobs
 {
     internal class WriteDebugTextJob : IJob
     {
-        private string text;
-        private bool includeTime;
+        private readonly string text;
+        private readonly bool includeTime;
  
         internal WriteDebugTextJob(string text, bool includeTime)
         {
@@ -24,11 +20,11 @@ namespace NSchduler.Tests.Jobs
         {
         }
 
-        public void Execute()
+        public virtual void Execute(JobContext context)
         {
             string line = text;
             if (includeTime)
-                line = $"{line} ({DateTime.Now.ToString("HH:mm:ss")})";
+                line = $"{line} ({DateTime.Now.ToString("HH:mm:ss.fff")})";
             Debug.WriteLine(line);
         }
     }                                                                                  

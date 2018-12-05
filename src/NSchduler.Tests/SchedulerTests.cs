@@ -15,12 +15,13 @@ namespace NSchduler.Tests
             scheduler = new Scheduler();
 
             JobSchedule schedule = new JobSchedule();
-            schedule.SetRepeatInterval(5, TimeInterval.Seconds);
+            schedule.SetRepeatInterval(1, TimeInterval.Seconds);
 
             WriteDebugTextJob job = new WriteDebugTextJob("Hello!");
 
-            scheduler.EnqueueJob(job, schedule);
-            scheduler.Start().Wait();
+            scheduler.ScheduleJob(job, schedule);
+            scheduler.Start();
+            scheduler.WaitShutDown();
         }
     }
 }

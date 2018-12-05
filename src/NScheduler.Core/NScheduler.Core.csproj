@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="IJob.cs" />
     <Compile Include="ITimeService.cs" />
+    <Compile Include="JobContext.cs" />
     <Compile Include="JobHolder.cs" />
     <Compile Include="JobSchedule.cs" />
     <Compile Include="NextFireTimeComparer.cs" />
