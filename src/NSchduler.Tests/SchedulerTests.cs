@@ -15,7 +15,7 @@ namespace NSchduler.Tests
             scheduler = new Scheduler();
 
             JobSchedule schedule = new JobSchedule();
-            schedule.SetRepeatInterval(10, TimeInterval.Seconds);
+            schedule.SetRepeatInterval(5, TimeInterval.Seconds);
 
             WriteDebugTextJob job = new WriteDebugTextJob("Hello!");
 

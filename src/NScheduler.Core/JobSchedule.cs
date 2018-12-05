@@ -4,8 +4,8 @@ namespace NScheduler.Core
 {
     public class JobSchedule
     {
-        private DateTime? finalFireTime;
         private DateTime? nextFireTime;
+        private DateTime? finalFireTime;
         private int interval;
         private TimeInterval span;
         private ITimeService timeService;
@@ -25,8 +25,9 @@ namespace NScheduler.Core
             interval = 1;
         }
 
-        internal void OnJobTriggered(DateTime now)
+        internal void CalculateNextFireTime()
         {
+            var now = Now();
             if (finalFireTime.HasValue && finalFireTime <= now)
             {
                 nextFireTime = null;
@@ -35,7 +36,7 @@ namespace NScheduler.Core
 
             var next = nextFireTime.Value;
 
-            switch(span)
+            switch (span)
             {
                 case TimeInterval.Seconds:
                     nextFireTime = next.AddSeconds(interval);
@@ -52,11 +53,16 @@ namespace NScheduler.Core
                 case TimeInterval.Weeks:
                     nextFireTime = next.AddDays(7 * interval);
                     break;
+                case TimeInterval.Months:
+                    nextFireTime = next.AddMonths(interval);
+                    break;
+                case TimeInterval.Years:
+                    nextFireTime = next.AddYears(interval);
+                    break;
             }
         }
 
         private DateTime Now()
-
         {
             if (timeService != null)
                   return timeService.Now();

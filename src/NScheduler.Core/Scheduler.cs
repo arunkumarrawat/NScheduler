@@ -59,18 +59,18 @@ namespace NScheduler.Core
                             {
                                 jobsQueue.RemoveWhere(x => x.Id == jh.Id);
                                 continue;
-                            } else
-                            {
-                                if (nextJobTime > now)
-                                    break;
-                                jobsQueue.RemoveWhere(x => x.Id == jh.Id);
-                                nextJobs.Add(jh);
                             }
+
+                            if (nextJobTime > now)
+                                    break;
+                            jobsQueue.RemoveWhere(x => x.Id == jh.Id);
+                            jh.Schedule.CalculateNextFireTime();
+                            nextJobs.Add(jh);
                         }
 
                         if (nextJobs.Count > 0)
-                            foreach (var nextJob in nextJobs)
-                                jobsQueue.Add(nextJob);
+                              foreach (var nextJob in nextJobs)
+                                  jobsQueue.Add(nextJob);
                     } // end LOCK
 
                     if (nextJobs.Count > 0)
@@ -79,7 +79,8 @@ namespace NScheduler.Core
                         {
                             try
                             {
-                                nj.Schedule.OnJobTriggered(now);
+                                // todo: make job context
+                                // to keep history of job
                                 nj.Job.Execute();
                             } catch { }
                         }
