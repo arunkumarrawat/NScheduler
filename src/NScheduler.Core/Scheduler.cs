@@ -10,22 +10,16 @@ namespace NScheduler.Core
     {
         private readonly SortedSet<JobHolder> jobsQueue;
         private readonly List<JobHolder> nextJobs;
-        private readonly ITimeService timeService;
         private CancellationTokenSource stopSrc;
         private Task execTask;
         private volatile bool isPaused;
         private volatile bool isShutDown;
 
-        public Scheduler() : this(null)
-        {
-        }
-
-        public Scheduler(ITimeService timeService)
+        public Scheduler()
         {
             this.jobsQueue = new SortedSet<JobHolder>(NextFireTimeComparator.GetInstance());
             this.nextJobs = new List<JobHolder>();
             this.stopSrc = new CancellationTokenSource();
-            this.timeService = timeService;
         }
 
         /// <summary>
@@ -55,7 +49,7 @@ namespace NScheduler.Core
                               break;
                     }
 
-                    DateTime now = timeService?.Now() ?? DateTime.Now;
+                    DateTimeOffset now = DateTimeOffset.Now;
                     nextJobs.Clear();
 
                     lock (jobsQueue)
@@ -66,7 +60,7 @@ namespace NScheduler.Core
                             if (jh == null)
                                   break;
 
-                            DateTime? scheduledFireTime = jh.Schedule.GetScheduledFireTime();
+                            DateTimeOffset? scheduledFireTime = jh.Schedule.GetScheduledFireTime();
 
                             if (!scheduledFireTime.HasValue)
                             {
@@ -93,11 +87,14 @@ namespace NScheduler.Core
                                     nj.Job.Execute(nj.Context);
                                     nj.Context.OnJobExecuted(nj);
 
-                                    lock (jobsQueue)
-                                        jobsQueue.Add(nj);
+                                    if (nj.Schedule.GetScheduledFireTime() != null)
+                                    {
+                                        lock (jobsQueue)
+                                            jobsQueue.Add(nj);
+                                    }
                                 } catch (Exception ex)
                                 {
-                                    nj.Context.OnJobFaulted(ex);
+                                    nj.Context.OnJobFaulted(ex, nj);
                                     throw;
                                 }
                             });

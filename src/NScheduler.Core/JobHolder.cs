@@ -14,15 +14,8 @@ namespace NScheduler.Core
             this.job = job;
             this.context = new JobContext();
             this.schedule = schedule;
+            this.schedule.SetContext(this.context);
             this.id = Guid.NewGuid();
-        }
-
-        public override bool Equals(object obj)
-        {
-            var jh = obj as JobHolder;
-            if (jh == null)
-                  return false;
-            return id == jh.id;
         }
 
         /// <summary>

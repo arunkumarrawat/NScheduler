@@ -6,13 +6,12 @@ namespace NScheduler.Core
     {
         public const int InfiniteRepeats = -1;
 
-        private DateTime? scheduledFireTime;
-        private DateTime? previousFireTime;
-        private DateTime? finalFireTime;
+        private DateTimeOffset? scheduledFireTime;
+        private DateTimeOffset? finalFireTime;
         private int interval;
         private int maxRepeats = InfiniteRepeats;
         private TimeInterval span;
-        private ITimeService timeService;
+        private JobContext context;
 
         public JobSchedule()
         {
@@ -21,12 +20,9 @@ namespace NScheduler.Core
             interval = 1;
         }
 
-        public JobSchedule(ITimeService timeService)
+        internal void SetContext(JobContext context)
         {
-            this.timeService = timeService;
-            scheduledFireTime = timeService.Now();
-            span = TimeInterval.Hours;
-            interval = 1;
+            this.context = context;
         }
 
         /// <summary>
@@ -34,16 +30,23 @@ namespace NScheduler.Core
         /// </summary>
         internal void SetNextFireTime()
         {
-            this.previousFireTime = this.scheduledFireTime;
             this.scheduledFireTime = CalculateNextFireTime();
         }
 
-        internal DateTime? CalculateNextFireTime()
+        internal DateTimeOffset? CalculateNextFireTime()
         {
-            if (!scheduledFireTime.HasValue)
-                 return null;
+            DateTime now = DateTime.Now;
 
-            DateTime nextFireTime = scheduledFireTime.Value;
+            if (!scheduledFireTime.HasValue)
+                  return null;
+
+            if (maxRepeats != InfiniteRepeats && context.TimesRun == maxRepeats)
+                  return null;
+
+            if (finalFireTime.HasValue && finalFireTime <= now)
+                  return null;
+
+            DateTimeOffset nextFireTime = scheduledFireTime.Value;
 
             switch (span)
             {
@@ -76,17 +79,40 @@ namespace NScheduler.Core
         /// <summary>
         /// Gets exact date & time of scheduled fire 
         /// </summary>
-        public DateTime? GetScheduledFireTime() => scheduledFireTime;
-
-        /// <summary>
-        /// Gets exact date & time of the previous fire 
-        /// </summary>
-        public DateTime? GetPreviousFireTime() => previousFireTime;
+        public DateTimeOffset? GetScheduledFireTime() => scheduledFireTime;
 
         public JobSchedule SetRepeatInterval(int interval, TimeInterval span)
         {
             this.interval = interval;
             this.span = span;
+            return this;
+        }
+
+        public JobSchedule SetInfinite()
+        {
+            this.maxRepeats = InfiniteRepeats;
+            this.finalFireTime = null;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets maximal count of repeats before jobs is un-scheduled
+        /// </summary>
+        /// <param name="maxRepeats"></param>
+        /// <returns></returns>
+        public JobSchedule SetMaxRepeats(int maxRepeats)
+        {
+            if (maxRepeats < 0 && maxRepeats != InfiniteRepeats)
+            {
+                throw new ArgumentException("Maximal count repeats should be a non-negative value", nameof(maxRepeats));
+            }
+            this.maxRepeats = maxRepeats;
+            return this;
+        }
+
+        public JobSchedule SetFinalFireTime(DateTime finalTime)
+        {
+            this.finalFireTime = finalTime;
             return this;
         }
 

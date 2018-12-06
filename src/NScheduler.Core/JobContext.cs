@@ -7,23 +7,23 @@ namespace NScheduler.Core
     /// </summary>
     public sealed class JobContext
     {
-        private DateTime? previousFireTime;
+        private DateTimeOffset? previousFireTime;
         private Exception lastException;
         private int timesRun;
         private int timesFaulted;
-        private Type jobType; 
     
         internal void OnJobExecuted(JobHolder jh)
         {
+            lastException = null;
             timesRun++;
-            jobType = jh.Job.GetType();
             previousFireTime = jh.Schedule.GetScheduledFireTime();
             jh.Schedule.SetNextFireTime();
         }
 
-        internal void OnJobFaulted(Exception ex)
+        internal void OnJobFaulted(Exception ex, JobHolder jh)
         {
             timesFaulted++;
+            jh.Schedule.SetNextFireTime();
         }
 
         /// <summary>
@@ -31,6 +31,6 @@ namespace NScheduler.Core
         /// </summary>
         public int TimesRun => timesRun;
 
-        public Type JobType => jobType;
+        public int TimesFaulted => timesFaulted;
     }
 }
