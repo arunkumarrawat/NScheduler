@@ -94,12 +94,12 @@ namespace NScheduler.Core
                                 {
                                     nj.Job.Execute(nj.Context);
                                     nj.Context.OnJobExecuted(nj);
-
-                                    lock (jobsQueue)
-                                        jobsQueue.Add(nj);
+                                    lock (jobsQueue) jobsQueue.Add(nj);
                                 } catch (Exception ex)
                                 {
+                                    Exception lastError = ex;
                                     int maxReTry = nj.Schedule.ReTryAttempts;
+
                                     if (maxReTry > 0)
                                     {
                                         while (nj.Context.IncrementReTry() <= maxReTry)
@@ -108,18 +108,18 @@ namespace NScheduler.Core
                                             {
                                                 nj.Job.Execute(nj.Context);
                                                 nj.Context.OnJobExecuted(nj);
-                                                lock (jobsQueue)
-                                                    jobsQueue.Add(nj);
+                                                lock (jobsQueue) jobsQueue.Add(nj);
                                                 return;
                                             } catch (Exception exOnReTry)
                                             {
-                                                nj.Context.SetLastError(exOnReTry);
+                                                lastError = exOnReTry;
+                                                nj.Context.SetLastError(lastError);
                                                 continue;
                                             }
                                         }
                                     }
 
-                                    nj.Context.OnJobFaulted(ex, nj);
+                                    nj.Context.OnJobFaulted(lastError, nj);
                                 }                                  
                             });
                         }

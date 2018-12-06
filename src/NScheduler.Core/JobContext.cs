@@ -31,10 +31,13 @@ namespace NScheduler.Core
         }
 
         /// <summary>
-        /// Gets count of times the task Job was executed
+        /// Gets total count of times the associated Job was executed
         /// </summary>
         public int TimesRun => timesRun;
 
+        /// <summary>
+        /// Gets total count of times the associated Job failed to execute
+        /// </summary>
         public int TimesFaulted => timesFaulted;
 
         /// <summary>
