@@ -11,7 +11,7 @@ namespace NScheduler.Core
         private readonly SortedSet<JobHolder> jobsQueue;
         private readonly List<JobHolder> nextJobs;
         private readonly ITimeService timeService;
-        private CancellationTokenSource cancelSrc;
+        private CancellationTokenSource stopSrc;
         private Task execTask;
         private volatile bool isPaused;
         private volatile bool isShutDown;
@@ -24,7 +24,7 @@ namespace NScheduler.Core
         {
             this.jobsQueue = new SortedSet<JobHolder>(NextFireTimeComparator.GetInstance());
             this.nextJobs = new List<JobHolder>();
-            this.cancelSrc = new CancellationTokenSource();
+            this.stopSrc = new CancellationTokenSource();
             this.timeService = timeService;
         }
 
@@ -36,23 +36,23 @@ namespace NScheduler.Core
         {
             if (execTask != null)
             {
-                 cancelSrc.Cancel();
+                 stopSrc.Cancel();
                  execTask.Wait();
-                 cancelSrc = new CancellationTokenSource();
+                 stopSrc = new CancellationTokenSource();
             }
 
             execTask = Task.Run(() =>
             {
-                while (!cancelSrc.IsCancellationRequested)
+                while (!stopSrc.IsCancellationRequested)
                 {
                     if (isPaused)
                     {
                         SpinWait sw = new SpinWait();
-                        while (isPaused && !cancelSrc.IsCancellationRequested)
+                        while (isPaused && !stopSrc.IsCancellationRequested)
                             sw.SpinOnce();
 
-                        if (cancelSrc.IsCancellationRequested)
-                               break;
+                        if (stopSrc.IsCancellationRequested)
+                              break;
                     }
 
                     DateTime now = timeService?.Now() ?? DateTime.Now;
@@ -66,25 +66,20 @@ namespace NScheduler.Core
                             if (jh == null)
                                   break;
 
-                            DateTime? nextJobTime = jh.Schedule.GetNextFireTime();
-           
-                            if (!nextJobTime.HasValue)
+                            DateTime? scheduledFireTime = jh.Schedule.GetScheduledFireTime();
+
+                            if (!scheduledFireTime.HasValue)
                             {
                                 jobsQueue.RemoveWhere(x => x.Id == jh.Id);
                                 continue;
                             }
 
-                            if (nextJobTime > now)
+                            if (scheduledFireTime > now)
                                     break;
 
-                            jobsQueue.RemoveWhere(x => x.Id == jh.Id);
-                            jh.Schedule.CalculateNextFireTime(now);
                             nextJobs.Add(jh);
-                        }
-
-                        if (nextJobs.Count > 0)
-                              foreach (var nextJob in nextJobs)
-                                 jobsQueue.Add(nextJob);
+                            jobsQueue.RemoveWhere(x => x.Id == jh.Id);
+                        }                                                                        
                     } // end LOCK
 
                     if (nextJobs.Count > 0)
@@ -96,7 +91,12 @@ namespace NScheduler.Core
                                 try
                                 {
                                     jh.Job.Execute(jh.Context);
-                                    jh.Context.OnJobExecuted(jh);
+
+                                    lock (jobsQueue)
+                                    {
+                                        jh.Schedule.SetNextFireTime();
+                                        jobsQueue.Add(jh);
+                                    }
                                 } catch (Exception ex)
                                 {
                                     jh.Context.OnJobFaulted(ex);
@@ -107,7 +107,6 @@ namespace NScheduler.Core
                     }
                 }
             });
-
             return execTask;
         }
 
@@ -141,7 +140,7 @@ namespace NScheduler.Core
         /// <returns></returns>
         public virtual Task Stop()
         {
-            cancelSrc.Cancel();
+            stopSrc.Cancel();
             isShutDown = true;
             return Task.CompletedTask;
         }
@@ -158,6 +157,7 @@ namespace NScheduler.Core
 
         public virtual Task Resume()
         {
+            isPaused = false;
             return Task.CompletedTask;
         }
     }

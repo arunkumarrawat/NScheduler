@@ -6,7 +6,7 @@ namespace NScheduler.Core
     {
         public const int InfiniteRepeats = -1;
 
-        private DateTime? nextFireTime;
+        private DateTime? scheduledFireTime;
         private DateTime? previousFireTime;
         private DateTime? finalFireTime;
         private int interval;
@@ -16,7 +16,7 @@ namespace NScheduler.Core
 
         public JobSchedule()
         {
-            nextFireTime = DateTime.Now;
+            scheduledFireTime = DateTime.Now;
             span = TimeInterval.Hours;
             interval = 1;
         }
@@ -24,59 +24,55 @@ namespace NScheduler.Core
         public JobSchedule(ITimeService timeService)
         {
             this.timeService = timeService;
-            nextFireTime = timeService.Now();
+            scheduledFireTime = timeService.Now();
             span = TimeInterval.Hours;
             interval = 1;
         }
 
-        internal void CalculateNextFireTime(DateTime now)
+        internal void SetNextFireTime()
         {
-            previousFireTime = nextFireTime;
-            if (finalFireTime.HasValue && finalFireTime <= now)
-            {
-                nextFireTime = null;
-                return;
-            }
+            this.scheduledFireTime = CalculateNextFireTime();
+        }
 
-            var next = nextFireTime.Value;
+        internal DateTime? CalculateNextFireTime()
+        {
+            if (!scheduledFireTime.HasValue)
+                 return null;
+
+            DateTime nextFireTime = scheduledFireTime.Value;
 
             switch (span)
             {
                 case TimeInterval.Seconds:
-                    nextFireTime = next.AddSeconds(interval);
+                    nextFireTime = nextFireTime.AddSeconds(interval);
                     break;
                 case TimeInterval.Minutes:
-                    nextFireTime = next.AddMinutes(interval);
+                    nextFireTime = nextFireTime.AddMinutes(interval);
                     break;
                 case TimeInterval.Hours:
-                    nextFireTime = next.AddHours(interval);
+                    nextFireTime = nextFireTime.AddHours(interval);
                     break;
                 case TimeInterval.Days:
-                    nextFireTime = next.AddDays(interval);
+                    nextFireTime = nextFireTime.AddDays(interval);
                     break;
                 case TimeInterval.Weeks:
-                    nextFireTime = next.AddDays(7 * interval);
+                    nextFireTime = nextFireTime.AddDays(7 * interval);
                     break;
                 case TimeInterval.Months:
-                    nextFireTime = next.AddMonths(interval);
+                    nextFireTime = nextFireTime.AddMonths(interval);
                     break;
                 case TimeInterval.Years:
-                    nextFireTime = next.AddYears(interval);
+                    nextFireTime = nextFireTime.AddYears(interval);
                     break;
             }
-        }
 
-        private DateTime Now()
-        {
-            if (timeService != null)
-                  return timeService.Now();
-            return DateTime.Now;
+            return nextFireTime;
         }
 
         /// <summary>
-        /// Gets exact date & time of the next fire 
+        /// Gets exact date & time of scheduled fire 
         /// </summary>
-        public DateTime? GetNextFireTime() => nextFireTime;
+        public DateTime? GetScheduledFireTime() => scheduledFireTime;
 
         /// <summary>
         /// Gets exact date & time of the previous fire 

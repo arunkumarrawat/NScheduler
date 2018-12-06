@@ -25,7 +25,7 @@ namespace NSchduler.Tests
             schedule2.SetRepeatInterval(5, TimeInterval.Seconds);
 
             await scheduler.ScheduleJob(job, schedule);
-            await scheduler.ScheduleJob(job2, schedule2);
+            //await scheduler.ScheduleJob(job2, schedule2);
             await scheduler.Run();
         }
     }

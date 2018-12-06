@@ -15,6 +15,7 @@ namespace NScheduler.Core
     
         internal void OnJobExecuted(JobHolder jh)
         {
+            jh.Schedule.SetNextFireTime();
             timesRun++;
             jobType = jh.Job.GetType();
             previousFireTime = jh.Schedule.GetPreviousFireTime();
