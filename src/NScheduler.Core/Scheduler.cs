@@ -84,22 +84,20 @@ namespace NScheduler.Core
 
                     if (nextJobs.Count > 0)
                     {
-                        foreach (JobHolder jh in nextJobs)
+                        foreach (JobHolder nj in nextJobs)
                         {
                             Task.Run(() => 
                             {
                                 try
                                 {
-                                    jh.Job.Execute(jh.Context);
+                                    nj.Job.Execute(nj.Context);
+                                    nj.Context.OnJobExecuted(nj);
 
                                     lock (jobsQueue)
-                                    {
-                                        jh.Schedule.SetNextFireTime();
-                                        jobsQueue.Add(jh);
-                                    }
+                                        jobsQueue.Add(nj);
                                 } catch (Exception ex)
                                 {
-                                    jh.Context.OnJobFaulted(ex);
+                                    nj.Context.OnJobFaulted(ex);
                                     throw;
                                 }
                             });

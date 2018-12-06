@@ -26,12 +26,12 @@ namespace NScheduler.Core
         }
 
         /// <summary>
-        /// Gets schedule of the job
+        /// Gets runtime schedule of the associated <see cref="IJob"/> instance
         /// </summary>
         public JobSchedule Schedule => schedule;
 
         /// <summary>
-        /// Gets an <see cref="IJob"/> instance to execute
+        /// Gets the associated <see cref="IJob"/> instance to execute
         /// </summary>
         public IJob Job => job;
 
@@ -41,7 +41,7 @@ namespace NScheduler.Core
         public JobContext Context => context;
 
         /// <summary>
-        /// Gets a unique identifier of an <see cref="IJob"/> instance
+        /// Gets a unique identifier of the associated <see cref="IJob"/> instance
         /// </summary>
         public Guid Id => id;
     }

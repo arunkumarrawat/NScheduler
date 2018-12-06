@@ -29,8 +29,12 @@ namespace NScheduler.Core
             interval = 1;
         }
 
+        /// <summary>
+        /// Sets exact date & time of the next fire
+        /// </summary>
         internal void SetNextFireTime()
         {
+            this.previousFireTime = this.scheduledFireTime;
             this.scheduledFireTime = CalculateNextFireTime();
         }
 

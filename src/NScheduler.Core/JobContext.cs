@@ -15,15 +15,15 @@ namespace NScheduler.Core
     
         internal void OnJobExecuted(JobHolder jh)
         {
-            jh.Schedule.SetNextFireTime();
             timesRun++;
             jobType = jh.Job.GetType();
-            previousFireTime = jh.Schedule.GetPreviousFireTime();
+            previousFireTime = jh.Schedule.GetScheduledFireTime();
+            jh.Schedule.SetNextFireTime();
         }
 
         internal void OnJobFaulted(Exception ex)
         {
-
+            timesFaulted++;
         }
 
         /// <summary>
