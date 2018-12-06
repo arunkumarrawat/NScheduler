@@ -1,6 +1,7 @@
 ﻿using NScheduler.Core;
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace NSchduler.Tests.Jobs
 {
@@ -20,12 +21,13 @@ namespace NSchduler.Tests.Jobs
         {
         }
 
-        public virtual void Execute(JobContext context)
+        public virtual Task Execute(JobContext context)
         {
             string line = text;
             if (includeTime)
                 line = $"{line} ({DateTime.Now.ToString("HH:mm:ss.fff")})";
             Debug.WriteLine(line);
+            return Task.CompletedTask;
         }
     }                                                                                  
 }

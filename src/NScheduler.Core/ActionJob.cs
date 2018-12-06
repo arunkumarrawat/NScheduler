@@ -1,34 +1,40 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace NScheduler.Core
 {
     /// <summary>
-    /// Special type of <see cref="IJob"/> that wraps <see cref="Action"/> instance to execute
+    /// Special type of <see cref="IJob"/> that adapts <see cref="Action"/> delegates instance to execute
     /// </summary>
     public class ActionJob : IJob
     {
-        protected readonly Action<JobContext> Action;
-        protected readonly Action SimpleAction;
+        public static ActionJob Action(Action action) => new ActionJob(action);
 
-        public ActionJob(Action action)
-        {
-            SimpleAction = action;
-        }
+        public static ActionJob Action(Action<JobContext> action) => new ActionJob(action);
+
+        protected readonly Action<JobContext> action;
+        protected readonly Action simpleAction;
 
         public ActionJob(Action<JobContext> action)
         {
-            Action = action;
+            this.action = action;
         }
 
-        public virtual void Execute(JobContext context)
+        public ActionJob(Action action)
         {
-            if (Action != null)
+            this.simpleAction = action;
+        }
+
+        public virtual Task Execute(JobContext context)
+        {
+            if (action != null)
             {
-                Action(context);
-                return;
+                action(context);
+                return Task.CompletedTask;
             }
 
-            SimpleAction?.Invoke();
+            simpleAction?.Invoke();
+            return Task.CompletedTask;
         }
     }
 }

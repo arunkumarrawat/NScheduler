@@ -37,13 +37,11 @@ namespace NScheduler.Core
                  stopSrc = new CancellationTokenSource();
             }
 
-            if (logger.IsDebugEnabled)
-                  logger.Debug("Scheduler starting ...");
+            Debug("Scheduler starting ...");
 
             execTask = Task.Run(() =>
             {
-                if (logger.IsDebugEnabled)
-                      logger.Debug("Scheduler started");
+                Debug("Scheduler started");
 
                 while (!stopSrc.IsCancellationRequested)
                 {
@@ -77,7 +75,7 @@ namespace NScheduler.Core
                             }
 
                             if (scheduledFireTime > now)
-                                    break;
+                                  break;
 
                             nextJobs.Add(jh);
                             jobsQueue.Remove(jh);
@@ -88,11 +86,11 @@ namespace NScheduler.Core
                     {
                         foreach (JobHolder nj in nextJobs)
                         {
-                            Task.Run(() => 
+                            Task.Run(async() => 
                             {
                                 try
                                 {
-                                    nj.Job.Execute(nj.Context);
+                                    await nj.Job.Execute(nj.Context);
                                     nj.Context.OnJobExecuted(nj);
                                     lock (jobsQueue) jobsQueue.Add(nj);
                                 } catch (Exception ex)
@@ -102,11 +100,12 @@ namespace NScheduler.Core
 
                                     if (maxReTry > 0)
                                     {
-                                        while (nj.Context.IncrementReTry() <= maxReTry)
+                                        while (maxReTry-- > 0)
                                         {
                                             try
                                             {
-                                                nj.Job.Execute(nj.Context);
+                                                nj.Context.IncrementReTryAttempt();
+                                                await nj.Job.Execute(nj.Context);
                                                 nj.Context.OnJobExecuted(nj);
                                                 lock (jobsQueue) jobsQueue.Add(nj);
                                                 return;
@@ -126,13 +125,18 @@ namespace NScheduler.Core
                     }
                 }
 
-                if (logger.IsDebugEnabled)
-                      logger.Debug("Scheduler shutting down ...");
+                Debug("Scheduler shutting down ...");
             });
             return execTask;
         }
 
-        public virtual Task ScheduleJob(IJob job, JobSchedule schedule)
+        protected void Debug(string msg)
+        {
+            if (logger.IsDebugEnabled)
+                  logger.Debug(msg);
+        }
+
+        public virtual Task ScheduleJob(IJob job, Schedule schedule)
         {
             if (isShutDown)
                   throw new InvalidOperationException("Scheduler is shut down. Cannot schedule a new job");

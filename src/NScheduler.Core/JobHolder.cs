@@ -6,14 +6,14 @@ namespace NScheduler.Core
     {
         private readonly IJob job;
         private readonly JobContext context;
-        private readonly JobSchedule schedule;
+        private readonly Schedule schedule;
         private readonly Guid id;
 
-        public JobHolder(IJob job, JobSchedule schedule)
+        public JobHolder(IJob job, Schedule schedule)
         {
             this.job = job;
             this.context = new JobContext();
-            this.schedule = schedule.Clone();
+            this.schedule = schedule;
             this.schedule.SetContext(this.context);
             this.id = Guid.NewGuid();
         }
@@ -21,7 +21,7 @@ namespace NScheduler.Core
         /// <summary>
         /// Gets runtime schedule of the associated <see cref="IJob"/> instance
         /// </summary>
-        public JobSchedule Schedule => schedule;
+        public Schedule Schedule => schedule;
 
         /// <summary>
         /// Gets the associated <see cref="IJob"/> instance to execute

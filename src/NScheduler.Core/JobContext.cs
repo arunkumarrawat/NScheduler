@@ -50,9 +50,9 @@ namespace NScheduler.Core
         /// </summary>
         public int ReTryAttempt => reTry;
 
-        internal int IncrementReTry()
+        internal void IncrementReTryAttempt()
         {
-            return ++this.reTry;
+            this.reTry++;
         }
 
         internal void SetLastError(Exception lastError)
