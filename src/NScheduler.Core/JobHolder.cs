@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NScheduler.Core.Schedules;
+using System;
 
 namespace NScheduler.Core
 {

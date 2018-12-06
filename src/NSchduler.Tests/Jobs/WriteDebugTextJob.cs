@@ -25,7 +25,7 @@ namespace NSchduler.Tests.Jobs
         {
             string line = text;
             if (includeTime)
-                line = $"{line} ({DateTime.Now.ToString("HH:mm:ss.fff")})";
+                line = $"{line} ({DateTime.Now.ToString("HH:mm:ss.ffff")})";
             Debug.WriteLine(line);
             return Task.CompletedTask;
         }

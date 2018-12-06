@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NScheduler.Core
+namespace NScheduler.Core.Schedules
 {
     /// <summary>
     /// Base class defining <see cref="IJob"/>'s runtime schedule

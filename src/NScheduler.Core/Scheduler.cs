@@ -1,4 +1,5 @@
 ﻿using NLog;
+using NScheduler.Core.Schedules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,19 +10,24 @@ namespace NScheduler.Core
 {
     public class Scheduler
     {
+        private const int PauseWaitMs = 1000;
+
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private readonly SortedSet<JobHolder> jobsQueue;
         private readonly List<JobHolder> nextJobs;
-        private CancellationTokenSource stopSrc;
+        private readonly object pauseLock;
         private Task execTask;
-        private volatile bool isPaused;
-        private volatile bool isShutDown;
+        private bool paused;
+        private volatile bool running;
 
         public Scheduler()
         {
             this.jobsQueue = new SortedSet<JobHolder>(NextFireTimeComparator.GetInstance());
             this.nextJobs = new List<JobHolder>();
-            this.stopSrc = new CancellationTokenSource();
+            this.pauseLock = new object();
+
+            this.running = true;
+            this.paused = false;
         }
 
         /// <summary>
@@ -30,28 +36,29 @@ namespace NScheduler.Core
         /// <returns></returns>
         public virtual Task Run()
         {
-            if (execTask != null)
-            {
-                 stopSrc.Cancel();
-                 execTask.Wait();
-                 stopSrc = new CancellationTokenSource();
-            }
-
             Debug("Scheduler starting ...");
 
             execTask = Task.Run(() =>
             {
                 Debug("Scheduler started");
 
-                while (!stopSrc.IsCancellationRequested)
+                while (running)
                 {
-                    if (isPaused)
+                    lock (pauseLock)
                     {
-                        SpinWait sw = new SpinWait();
-                        while (isPaused && !stopSrc.IsCancellationRequested)
-                            sw.SpinOnce();
+                        while (paused && running)
+                        {
+                            try
+                            {
+                                // wait until scheduler resumes
+                                // processing loop
+                                Monitor.Wait(pauseLock, PauseWaitMs);
+                            } catch
+                            {
+                            }
+                        }
 
-                        if (stopSrc.IsCancellationRequested)
+                        if (!running)
                               break;
                     }
 
@@ -84,19 +91,37 @@ namespace NScheduler.Core
 
                     if (nextJobs.Count > 0)
                     {
-                        foreach (JobHolder nj in nextJobs)
+                        // check if pause requested
+                        // just after jobs fetched
+                        bool pauseReq;
+
+                        lock (pauseLock)
+                           pauseReq = paused;
+
+                        if (pauseReq)
                         {
-                            Task.Run(async() => 
+                            // save jobs until resume
+                            lock (jobsQueue)
+                            {
+                                foreach (JobHolder jh in nextJobs)
+                                   jobsQueue.Add(jh);
+                            }
+                            continue;
+                        }
+
+                        foreach (JobHolder jh in nextJobs)
+                        {
+                            Task.Run(async () => 
                             {
                                 try
                                 {
-                                    await nj.Job.Execute(nj.Context);
-                                    nj.Context.OnJobExecuted(nj);
-                                    lock (jobsQueue) jobsQueue.Add(nj);
+                                    await jh.Job.Execute(jh.Context);
+                                    jh.Context.OnJobExecuted(jh);
+                                    lock (jobsQueue) jobsQueue.Add(jh);
                                 } catch (Exception ex)
                                 {
                                     Exception lastError = ex;
-                                    int maxReTry = nj.Schedule.ReTryAttempts;
+                                    int maxReTry = jh.Schedule.ReTryAttempts;
 
                                     if (maxReTry > 0)
                                     {
@@ -104,21 +129,21 @@ namespace NScheduler.Core
                                         {
                                             try
                                             {
-                                                nj.Context.IncrementReTryAttempt();
-                                                await nj.Job.Execute(nj.Context);
-                                                nj.Context.OnJobExecuted(nj);
-                                                lock (jobsQueue) jobsQueue.Add(nj);
+                                                jh.Context.IncrementReTryAttempt();
+                                                await jh.Job.Execute(jh.Context);
+                                                jh.Context.OnJobExecuted(jh);
+                                                lock (jobsQueue) jobsQueue.Add(jh);
                                                 return;
                                             } catch (Exception exOnReTry)
                                             {
                                                 lastError = exOnReTry;
-                                                nj.Context.SetLastError(lastError);
+                                                jh.Context.SetLastError(lastError);
                                                 continue;
                                             }
                                         }
                                     }
 
-                                    nj.Context.OnJobFaulted(lastError, nj);
+                                    jh.Context.OnJobFaulted(lastError, jh);
                                 }                                  
                             });
                         }
@@ -136,11 +161,14 @@ namespace NScheduler.Core
                   logger.Debug(msg);
         }
 
+        /// <summary>
+        /// Schedules a new job 
+        /// </summary>
+        /// <param name="job"></param>
+        /// <param name="schedule"></param>
+        /// <returns></returns>
         public virtual Task ScheduleJob(IJob job, Schedule schedule)
         {
-            if (isShutDown)
-                  throw new InvalidOperationException("Scheduler is shut down. Cannot schedule a new job");
-
             lock (jobsQueue)
                 jobsQueue.Add(new JobHolder(job, schedule));
             return Task.CompletedTask;
@@ -155,7 +183,7 @@ namespace NScheduler.Core
         {
             lock (jobsQueue)
             {
-                int res = jobsQueue.RemoveWhere(jh => jh.Job == job);
+                int res = jobsQueue.RemoveWhere(jh => jh.Job.Equals(job));
                 return Task.FromResult(res > 0);
             }
         } 
@@ -164,11 +192,12 @@ namespace NScheduler.Core
         /// Stops scheduler and all pending jobs
         /// </summary>
         /// <returns></returns>
-        public virtual Task Stop()
+        public async virtual Task Stop()
         {
-            stopSrc.Cancel();
-            isShutDown = true;
-            return Task.CompletedTask;
+            Task task = execTask;
+            if (task == null) return;
+            running = false;
+            await task.ConfigureAwait(false);
         }
 
         /// <summary>
@@ -177,14 +206,29 @@ namespace NScheduler.Core
         /// <returns></returns>
         public virtual Task Pause()
         {
-            isPaused = true;
-            return Task.CompletedTask;
+            lock (pauseLock)
+            {
+                paused = true;
+                return Task.CompletedTask;
+            }
         }
 
+        /// <summary>
+        /// Resumes scheduler after pause
+        /// </summary>
+        /// <returns></returns>
         public virtual Task Resume()
         {
-            isPaused = false;
-            return Task.CompletedTask;
+            Task task = execTask;
+            if (task == null || !running)
+                return Task.CompletedTask;
+
+            lock (pauseLock)
+            {
+                paused = false;
+                Monitor.Pulse(pauseLock);
+                return Task.CompletedTask;
+            }
         }
     }
 }
