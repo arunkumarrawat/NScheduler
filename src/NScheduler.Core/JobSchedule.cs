@@ -110,7 +110,7 @@ namespace NScheduler.Core
             return this;
         }
 
-        public JobSchedule SetFinalFireTime(DateTime finalTime)
+        public JobSchedule SetFinalFireTime(DateTimeOffset finalTime)
         {
             this.finalFireTime = finalTime;
             return this;
