@@ -2,6 +2,7 @@
 using NScheduler.Core;
 using NUnit.Framework;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace NSchduler.Tests
@@ -16,13 +17,9 @@ namespace NSchduler.Tests
         {
             scheduler = new Scheduler();
 
-            DateTimeOffset dto = DateTimeOffset.Now;
-            DateTimeOffset dtoUtc = DateTimeOffset.UtcNow;
-
-
             JobSchedule schedule = new JobSchedule();
             schedule.SetRepeatInterval(1, TimeInterval.Seconds)
-                    .SetFinalFireTime(dto.AddMinutes(2));
+                    .SetMaxRepeats(1);
 
             WriteDebugTextJob job = new WriteDebugTextJob("Hello 1s span");
             WriteDebugTextJob job2 = new WriteDebugTextJob("Hello 5s span");
