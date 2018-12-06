@@ -9,6 +9,9 @@ namespace NScheduler.Core
 
         public int Compare(JobHolder x, JobHolder y)
         {
+            if (ReferenceEquals(x, y))
+                return 0;
+
             DateTime? xFireTime = x.Schedule.GetScheduledFireTime();
             DateTime? yFireTime = y.Schedule.GetScheduledFireTime();
 

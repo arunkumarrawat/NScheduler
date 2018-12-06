@@ -70,7 +70,7 @@ namespace NScheduler.Core
 
                             if (!scheduledFireTime.HasValue)
                             {
-                                jobsQueue.RemoveWhere(x => x.Id == jh.Id);
+                                jobsQueue.Remove(jh);
                                 continue;
                             }
 
@@ -78,7 +78,7 @@ namespace NScheduler.Core
                                     break;
 
                             nextJobs.Add(jh);
-                            jobsQueue.RemoveWhere(x => x.Id == jh.Id);
+                            jobsQueue.Remove(jh);
                         }                                                                        
                     } // end LOCK
 
