@@ -43,5 +43,11 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NScheduler.Core\NScheduler.Core.csproj">
+      <Project>{4ABA34E2-B7F3-4A1D-B496-57003E421217}</Project>
+      <Name>NScheduler.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

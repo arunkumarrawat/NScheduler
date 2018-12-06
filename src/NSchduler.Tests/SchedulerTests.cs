@@ -16,10 +16,9 @@ namespace NSchduler.Tests
         public async Task Test()
         {
             scheduler = new Scheduler();
-
             JobSchedule schedule = new JobSchedule();
             schedule.SetRepeatInterval(1, TimeInterval.Seconds)
-                    .SetMaxRepeats(1);
+                    .SetInfinite();
 
             WriteDebugTextJob job = new WriteDebugTextJob("Hello 1s span");
             WriteDebugTextJob job2 = new WriteDebugTextJob("Hello 5s span");

@@ -35,7 +35,7 @@ namespace NScheduler.Core
 
         internal DateTimeOffset? CalculateNextFireTime()
         {
-            DateTime now = DateTime.Now;
+            DateTimeOffset now = DateTimeOffset.Now;
 
             if (!scheduledFireTime.HasValue)
                   return null;
@@ -43,7 +43,7 @@ namespace NScheduler.Core
             if (maxRepeats != InfiniteRepeats && context.TimesRun == maxRepeats)
                   return null;
 
-            if (finalFireTime.HasValue && finalFireTime <= now)
+            if (finalFireTime.HasValue && finalFireTime < now)
                   return null;
 
             DateTimeOffset nextFireTime = scheduledFireTime.Value;
@@ -88,6 +88,10 @@ namespace NScheduler.Core
             return this;
         }
 
+        /// <summary>
+        /// Sets schedule as infinite 
+        /// </summary>
+        /// <returns></returns>
         public JobSchedule SetInfinite()
         {
             this.maxRepeats = InfiniteRepeats;
@@ -104,7 +108,7 @@ namespace NScheduler.Core
         {
             if (maxRepeats < 0 && maxRepeats != InfiniteRepeats)
             {
-                throw new ArgumentException("Maximal count repeats should be a non-negative value", nameof(maxRepeats));
+                throw new ArgumentException("Maximal count of repeats should be a non-negative value", nameof(maxRepeats));
             }
             this.maxRepeats = maxRepeats;
             return this;
@@ -119,6 +123,11 @@ namespace NScheduler.Core
         public JobSchedule Clone()
         {
             JobSchedule clone = new JobSchedule();
+            clone.context = this.context;
+            clone.finalFireTime = this.finalFireTime;
+            clone.interval = this.interval;
+            clone.scheduledFireTime = this.scheduledFireTime;
+            clone.span = this.span;
             return clone;
         }
     }

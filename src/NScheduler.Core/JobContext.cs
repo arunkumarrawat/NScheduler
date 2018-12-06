@@ -22,6 +22,7 @@ namespace NScheduler.Core
 
         internal void OnJobFaulted(Exception ex, JobHolder jh)
         {
+            lastException = ex;
             timesFaulted++;
             jh.Schedule.SetNextFireTime();
         }

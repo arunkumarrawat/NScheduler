@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NLog;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -8,6 +9,7 @@ namespace NScheduler.Core
 {
     public class Scheduler
     {
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private readonly SortedSet<JobHolder> jobsQueue;
         private readonly List<JobHolder> nextJobs;
         private CancellationTokenSource stopSrc;
@@ -35,8 +37,14 @@ namespace NScheduler.Core
                  stopSrc = new CancellationTokenSource();
             }
 
+            if (logger.IsDebugEnabled)
+                  logger.Debug("Scheduler starting ...");
+
             execTask = Task.Run(() =>
             {
+                if (logger.IsDebugEnabled)
+                      logger.Debug("Scheduler started");
+
                 while (!stopSrc.IsCancellationRequested)
                 {
                     if (isPaused)
@@ -101,6 +109,9 @@ namespace NScheduler.Core
                         }
                     }
                 }
+
+                if (logger.IsDebugEnabled)
+                      logger.Debug("Scheduler shutting down ...");
             });
             return execTask;
         }
@@ -124,7 +135,7 @@ namespace NScheduler.Core
         {
             lock (jobsQueue)
             {
-                int res = jobsQueue.RemoveWhere(jh => jh.Job.Equals(job));
+                int res = jobsQueue.RemoveWhere(jh => jh.Job == job);
                 return Task.FromResult(res > 0);
             }
         } 
