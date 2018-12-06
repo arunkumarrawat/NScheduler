@@ -30,8 +30,14 @@ namespace NScheduler.Core
         /// </summary>
         public JobSchedule Schedule => schedule;
 
+        /// <summary>
+        /// Gets an <see cref="IJob"/> instance to execute
+        /// </summary>
         public IJob Job => job;
 
+        /// <summary>
+        /// Gets context of the job
+        /// </summary>
         public JobContext Context => context;
 
         /// <summary>

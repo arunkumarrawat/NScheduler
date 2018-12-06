@@ -10,14 +10,22 @@ namespace NScheduler.Core
     {
         private readonly SortedSet<JobHolder> jobsQueue;
         private readonly List<JobHolder> nextJobs;
-        private volatile bool isRunning;
+        private readonly ITimeService timeService;
+        private CancellationTokenSource cancelSrc;
+        private Task execTask;
         private volatile bool isPaused;
         private volatile bool isShutDown;
 
-        public Scheduler()
+        public Scheduler() : this(null)
         {
-            jobsQueue = new SortedSet<JobHolder>(NextFireTimeComparator.GetInstance());
-            nextJobs = new List<JobHolder>();
+        }
+
+        public Scheduler(ITimeService timeService)
+        {
+            this.jobsQueue = new SortedSet<JobHolder>(NextFireTimeComparator.GetInstance());
+            this.nextJobs = new List<JobHolder>();
+            this.cancelSrc = new CancellationTokenSource();
+            this.timeService = timeService;
         }
 
         /// <summary>
@@ -26,33 +34,39 @@ namespace NScheduler.Core
         /// <returns></returns>
         public virtual Task Run()
         {
-            isRunning = true;
-            return Task.Run(() =>
+            if (execTask != null)
             {
-                while (isRunning)
+                 cancelSrc.Cancel();
+                 execTask.Wait();
+                 cancelSrc = new CancellationTokenSource();
+            }
+
+            execTask = Task.Run(() =>
+            {
+                while (!cancelSrc.IsCancellationRequested)
                 {
                     if (isPaused)
                     {
                         SpinWait sw = new SpinWait();
-                        while (isPaused && isRunning)
+                        while (isPaused && !cancelSrc.IsCancellationRequested)
                             sw.SpinOnce();
 
-                        if (!isRunning)
+                        if (cancelSrc.IsCancellationRequested)
                                break;
                     }
 
-                    var now = DateTime.Now;
+                    DateTime now = timeService?.Now() ?? DateTime.Now;
                     nextJobs.Clear();
 
                     lock (jobsQueue)
                     {
                         while (true)
                         {
-                            var jh = jobsQueue.FirstOrDefault();
+                            JobHolder jh = jobsQueue.FirstOrDefault();
                             if (jh == null)
                                   break;
 
-                            var nextJobTime = jh.Schedule.GetNextFireTime();
+                            DateTime? nextJobTime = jh.Schedule.GetNextFireTime();
            
                             if (!nextJobTime.HasValue)
                             {
@@ -64,7 +78,7 @@ namespace NScheduler.Core
                                     break;
 
                             jobsQueue.RemoveWhere(x => x.Id == jh.Id);
-                            jh.Schedule.CalculateNextFireTime();
+                            jh.Schedule.CalculateNextFireTime(now);
                             nextJobs.Add(jh);
                         }
 
@@ -75,20 +89,26 @@ namespace NScheduler.Core
 
                     if (nextJobs.Count > 0)
                     {
-                        foreach (var nj in nextJobs)
+                        foreach (JobHolder jh in nextJobs)
                         {
-                            try
+                            Task.Run(() => 
                             {
-                                Task.Run(() => 
+                                try
                                 {
-                                    nj.Context.Refresh();
-                                    nj.Job.Execute(nj.Context);
-                                });
-                            } catch { }
+                                    jh.Job.Execute(jh.Context);
+                                    jh.Context.OnJobExecuted(jh);
+                                } catch (Exception ex)
+                                {
+                                    jh.Context.OnJobFaulted(ex);
+                                    throw;
+                                }
+                            });
                         }
                     }
                 }
             });
+
+            return execTask;
         }
 
         public virtual Task ScheduleJob(IJob job, JobSchedule schedule)
@@ -102,21 +122,43 @@ namespace NScheduler.Core
         }
 
         /// <summary>
+        /// Un-schedules specified job
+        /// </summary>
+        /// <param name="job"></param>
+        /// <returns></returns>
+        public virtual Task<bool> UnScheduleJob(IJob job)
+        {
+            lock (jobsQueue)
+            {
+                int res = jobsQueue.RemoveWhere(jh => jh.Job.Equals(job));
+                return Task.FromResult(res > 0);
+            }
+        } 
+
+        /// <summary>
         /// Stops scheduler and all pending jobs
         /// </summary>
         /// <returns></returns>
         public virtual Task Stop()
         {
-            isRunning = false;
+            cancelSrc.Cancel();
             isShutDown = true;
             return Task.CompletedTask;
         }
 
-        public virtual void Pause()
+        /// <summary>
+        /// Pauses scheduler until it gets resumed
+        /// </summary>
+        /// <returns></returns>
+        public virtual Task Pause()
         {
-            if (isShutDown)
-                  return;
             isPaused = true;
+            return Task.CompletedTask;
+        }
+
+        public virtual Task Resume()
+        {
+            return Task.CompletedTask;
         }
     }
 }

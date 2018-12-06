@@ -4,9 +4,13 @@ namespace NScheduler.Core
 {
     public class JobSchedule
     {
+        public const int InfiniteRepeats = -1;
+
         private DateTime? nextFireTime;
+        private DateTime? previousFireTime;
         private DateTime? finalFireTime;
         private int interval;
+        private int maxRepeats = InfiniteRepeats;
         private TimeInterval span;
         private ITimeService timeService;
 
@@ -25,9 +29,9 @@ namespace NScheduler.Core
             interval = 1;
         }
 
-        internal void CalculateNextFireTime()
+        internal void CalculateNextFireTime(DateTime now)
         {
-            var now = Now();
+            previousFireTime = nextFireTime;
             if (finalFireTime.HasValue && finalFireTime <= now)
             {
                 nextFireTime = null;
@@ -70,9 +74,14 @@ namespace NScheduler.Core
         }
 
         /// <summary>
-        /// Gets exact date & time of next fire 
+        /// Gets exact date & time of the next fire 
         /// </summary>
         public DateTime? GetNextFireTime() => nextFireTime;
+
+        /// <summary>
+        /// Gets exact date & time of the previous fire 
+        /// </summary>
+        public DateTime? GetPreviousFireTime() => previousFireTime;
 
         public JobSchedule SetRepeatInterval(int interval, TimeInterval span)
         {
