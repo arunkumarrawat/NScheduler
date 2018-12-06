@@ -49,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActionJob.cs" />
     <Compile Include="IJob.cs" />
     <Compile Include="JobContext.cs" />
     <Compile Include="JobHolder.cs" />

@@ -10,8 +10,11 @@ namespace NScheduler.Core
         private DateTimeOffset? finalFireTime;
         private int interval;
         private int maxRepeats = InfiniteRepeats;
+        private int reTryAttempts;
         private TimeInterval span;
         private JobContext context;
+
+        public int ReTryAttempts => reTryAttempts;
 
         public JobSchedule()
         {
@@ -88,6 +91,17 @@ namespace NScheduler.Core
             return this;
         }
 
+        public JobSchedule SetReTryAttempts(int reTry)
+        {
+            if (reTry < 0)
+            {
+                throw new ArgumentException("Count of re-try attempts should be a non-negative value", nameof(reTry));
+            }
+
+            this.reTryAttempts = reTry;
+            return this;
+        }
+
         /// <summary>
         /// Sets schedule as infinite 
         /// </summary>
@@ -128,6 +142,7 @@ namespace NScheduler.Core
             clone.interval = this.interval;
             clone.scheduledFireTime = this.scheduledFireTime;
             clone.span = this.span;
+            clone.reTryAttempts = this.reTryAttempts;
             return clone;
         }
     }

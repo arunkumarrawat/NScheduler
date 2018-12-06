@@ -95,16 +95,32 @@ namespace NScheduler.Core
                                     nj.Job.Execute(nj.Context);
                                     nj.Context.OnJobExecuted(nj);
 
-                                    if (nj.Schedule.GetScheduledFireTime() != null)
-                                    {
-                                        lock (jobsQueue)
-                                            jobsQueue.Add(nj);
-                                    }
+                                    lock (jobsQueue)
+                                        jobsQueue.Add(nj);
                                 } catch (Exception ex)
                                 {
+                                    int maxReTry = nj.Schedule.ReTryAttempts;
+                                    if (maxReTry > 0)
+                                    {
+                                        while (nj.Context.IncrementReTry() <= maxReTry)
+                                        {
+                                            try
+                                            {
+                                                nj.Job.Execute(nj.Context);
+                                                nj.Context.OnJobExecuted(nj);
+                                                lock (jobsQueue)
+                                                    jobsQueue.Add(nj);
+                                                return;
+                                            } catch (Exception exOnReTry)
+                                            {
+                                                nj.Context.SetLastError(exOnReTry);
+                                                continue;
+                                            }
+                                        }
+                                    }
+
                                     nj.Context.OnJobFaulted(ex, nj);
-                                    throw;
-                                }
+                                }                                  
                             });
                         }
                     }
