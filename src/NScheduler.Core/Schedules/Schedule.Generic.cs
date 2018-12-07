@@ -4,14 +4,17 @@ namespace NScheduler.Core.Schedules
 {
     public abstract class Schedule<TSchedule> : Schedule where TSchedule : Schedule
     {
-        protected int reTryAttempts;
+        public const int InfiniteRepeats = -1;
+
+        protected int maxRepeats = InfiniteRepeats;
+        protected DateTimeOffset? finalFireTime;
 
         /// <summary>
         /// Sets maximal count of repeats before jobs is un-scheduled
         /// </summary>
         /// <param name="maxRepeats"></param>
         /// <returns></returns>
-        public TSchedule SetMaxRepeats(int maxRepeats)
+        public virtual TSchedule SetMaxRepeats(int maxRepeats)
         {
             if (maxRepeats < 0 && maxRepeats != InfiniteRepeats)
             {
@@ -21,14 +24,22 @@ namespace NScheduler.Core.Schedules
             return this as TSchedule;
         }
 
+        public virtual TSchedule SetFinalFireTime(DateTimeOffset finalFireTime)
+        {
+            this.finalFireTime = finalFireTime;
+            return this as TSchedule;
+        }
+
         public virtual TSchedule SetReTryAttempts(int reTry)
         {
-            this.reTryAttempts = reTry;
+            reTryAttempts = reTry;
             return this as TSchedule;
         }
 
         public virtual TSchedule SetInfinite()
         {
+            maxRepeats = InfiniteRepeats;
+            finalFireTime = null;
             return this as TSchedule;
         }
     }

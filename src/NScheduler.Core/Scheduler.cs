@@ -75,15 +75,15 @@ namespace NScheduler.Core
                             if (jh == null)
                                   break;
 
-                            DateTimeOffset? scheduledFireTime = jh.Schedule.GetScheduledFireTime();
+                            DateTimeOffset? nextFireTime = jh.Schedule.GetNextFireTime();
 
-                            if (!scheduledFireTime.HasValue)
+                            if (!nextFireTime.HasValue)
                             {
-                                 jobsQueue.Remove(jh);
-                                 continue;
+                                jobsQueue.Remove(jh);
+                                continue;
                             }
 
-                            if (scheduledFireTime > now)
+                            if (nextFireTime > now)
                                   break;
 
                             nextJobs.Add(jh);
@@ -177,7 +177,7 @@ namespace NScheduler.Core
 
             if (schedule == null)
             {
-                throw new ArgumentNullException(nameof(schedule), "Schedule is NULL");
+                throw new ArgumentNullException(nameof(schedule), "Job's schedule is NULL");
             }
 
             lock (jobsQueue)
@@ -185,6 +185,19 @@ namespace NScheduler.Core
             return Task.CompletedTask;
         }
 
+        public virtual Task ScheduleJob(Action action, Schedule schedule)
+        {
+            IJob job = ActionJob.FromAction(action);
+            return ScheduleJob(job, schedule);
+        }
+
+
+        public virtual Task ScheduleJob(Action<JobContext> action, Schedule schedule)
+        {
+            IJob job = ActionJob.FromAction(action);
+            return ScheduleJob(job, schedule);
+        }
+        
         /// <summary>
         /// Un-schedules specified job
         /// </summary>
@@ -226,7 +239,9 @@ namespace NScheduler.Core
         {
             Task task = execTask;
             if (task == null || !running)
-                return Task.CompletedTask;
+            {
+                throw new InvalidOperationException("Cannot pause scheduler since it's not running");
+            }
 
             lock (pauseLock)
             {
@@ -243,7 +258,9 @@ namespace NScheduler.Core
         {
             Task task = execTask;
             if (task == null || !running)
-                return Task.CompletedTask;
+            {
+                throw new InvalidOperationException("Cannot resume scheduler since it's not running");
+            }
 
             lock (pauseLock)
             {

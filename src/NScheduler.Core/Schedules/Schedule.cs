@@ -7,12 +7,8 @@ namespace NScheduler.Core.Schedules
     /// </summary>
     public abstract class Schedule
     {
-        public const int InfiniteRepeats = -1;
-
-        protected DateTimeOffset? scheduledFireTime;
+        protected DateTimeOffset? nextFireTime;
         protected JobContext context;
-        protected DateTimeOffset? finalFireTime;
-        protected int maxRepeats = InfiniteRepeats;
         protected int reTryAttempts;
 
         /// <summary>
@@ -29,17 +25,16 @@ namespace NScheduler.Core.Schedules
         /// </summary>
         internal void SetNextFireTime()
         {
-            scheduledFireTime = CalculateNextFireTime();
+            nextFireTime = CalculateNextFireTime();
         }
-
 
         /// <summary>
         /// Allows a schedule to prepare/initialize itself before adding to the 
         /// queue of running jobs
         /// </summary>
-        public virtual void Prepare()
+        public virtual void Initialze()
         {
-            scheduledFireTime = DateTimeOffset.Now;
+            nextFireTime = DateTimeOffset.Now;
         }
 
         /// <summary>
@@ -51,17 +46,11 @@ namespace NScheduler.Core.Schedules
         /// <summary>
         /// Gets exact date & time of scheduled fire 
         /// </summary>
-        public DateTimeOffset? GetScheduledFireTime() => scheduledFireTime;
+        public DateTimeOffset? GetNextFireTime() => nextFireTime;
 
         /// <summary>
         /// Gets max count of re-try attempts before job is considered faulted
         /// </summary>
         public int ReTryAttempts => reTryAttempts;
-
-        public Schedule SetFinalFireTime(DateTimeOffset finalTime)
-        {
-            this.finalFireTime = finalTime;
-            return this;
-        }
     }
 }

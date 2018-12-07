@@ -4,13 +4,13 @@ using System.Threading.Tasks;
 namespace NScheduler.Core
 {
     /// <summary>
-    /// Special type of <see cref="IJob"/> that adapts <see cref="Action"/> delegates instance to execute
+    /// Special type of <see cref="IJob"/> that adapts <see cref="FromAction"/> delegates instance to execute
     /// </summary>
     public class ActionJob : IJob
     {
-        public static ActionJob Action(Action action) => new ActionJob(action);
+        public static ActionJob FromAction(Action action) => new ActionJob(action);
 
-        public static ActionJob Action(Action<JobContext> action) => new ActionJob(action);
+        public static ActionJob FromAction(Action<JobContext> action) => new ActionJob(action);
 
         protected readonly Action<JobContext> action;
         protected readonly Action simpleAction;

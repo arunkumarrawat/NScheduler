@@ -12,8 +12,8 @@ namespace NScheduler.Core
             if (ReferenceEquals(x, y))
                 return 0;
 
-            DateTimeOffset? xFireTime = x.Schedule.GetScheduledFireTime();
-            DateTimeOffset? yFireTime = y.Schedule.GetScheduledFireTime();
+            DateTimeOffset? xFireTime = x.Schedule.GetNextFireTime();
+            DateTimeOffset? yFireTime = y.Schedule.GetNextFireTime();
 
             if (xFireTime != null || yFireTime != null)
             {

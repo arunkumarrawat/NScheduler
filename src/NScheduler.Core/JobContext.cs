@@ -18,7 +18,7 @@ namespace NScheduler.Core
             reTry = 0;
             lastError = null;
             timesRun++;
-            previousFireTime = jh.Schedule.GetScheduledFireTime();
+            previousFireTime = jh.Schedule.GetNextFireTime();
             jh.Schedule.SetNextFireTime();
         }
 

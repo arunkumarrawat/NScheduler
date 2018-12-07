@@ -9,10 +9,10 @@ namespace NScheduler.Core.Schedules
     {
         private DayTime dayTime = DayTime.ZeroTime;
 
-        public override void Prepare()
+        public override void Initialze()
         {
             DateTimeOffset now = DateTimeOffset.Now;
-            scheduledFireTime = dayTime.GetDateTimeOffset(now);
+            nextFireTime = dayTime.GetDateTimeOffset(now);
         }
 
         /// <summary>
@@ -42,11 +42,11 @@ namespace NScheduler.Core.Schedules
 
         public override DateTimeOffset? CalculateNextFireTime()
         {
-            if (!scheduledFireTime.HasValue)
-                return null;
+            if (!nextFireTime.HasValue)
+                  return null;
 
-            DateTimeOffset nextFireTime = scheduledFireTime.Value.AddDays(1);
-            nextFireTime = dayTime.GetDateTimeOffset(nextFireTime);
+            nextFireTime = nextFireTime.Value.AddDays(1);
+            nextFireTime = dayTime.GetDateTimeOffset(nextFireTime.Value);
             return nextFireTime;
         }
     }

@@ -33,47 +33,47 @@ namespace NScheduler.Core.Schedules
         {
             DateTimeOffset now = DateTimeOffset.Now;
 
-            if (!scheduledFireTime.HasValue)
+            if (!nextFireTime.HasValue)
                 return null;
             if (finalFireTime.HasValue && finalFireTime < now)
                 return null;
             if (maxRepeats != InfiniteRepeats && maxRepeats == context.TimesRun)
                 return null;
 
-            DateTimeOffset nextFireTime = scheduledFireTime.Value;
+            DateTimeOffset result = nextFireTime.Value;
 
             switch (Period)
             {
                 case TimeInterval.Seconds:
-                    nextFireTime = nextFireTime.AddSeconds(interval);
+                    result = result.AddSeconds(interval);
                     break;
 
                 case TimeInterval.Minutes:
-                    nextFireTime = nextFireTime.AddMinutes(interval);
+                    result = result.AddMinutes(interval);
                     break;
 
                 case TimeInterval.Hours:
-                    nextFireTime = nextFireTime.AddHours(interval);
+                    result = result.AddHours(interval);
                     break;
 
                 case TimeInterval.Days:
-                    nextFireTime = nextFireTime.AddDays(interval);
+                    result = result.AddDays(interval);
                     break;
 
                 case TimeInterval.Weeks:
-                    nextFireTime = nextFireTime.AddDays(7 * interval);
+                    result = result.AddDays(7 * interval);
                     break;
 
                 case TimeInterval.Months:
-                    nextFireTime = nextFireTime.AddMonths(interval);
+                    result = result.AddMonths(interval);
                     break;
 
                 case TimeInterval.Years:
-                    nextFireTime = nextFireTime.AddYears(interval);
+                    result = result.AddYears(interval);
                     break;
             }
 
-            return nextFireTime;
+            return result;
         }
 
         protected abstract TimeInterval Period { get; }
