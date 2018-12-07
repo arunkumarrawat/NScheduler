@@ -8,6 +8,7 @@ namespace NScheduler.Core.Schedules
     public abstract class Schedule
     {
         protected DateTimeOffset? nextFireTime;
+        protected DateTimeOffset? previousFireTime;
         protected JobContext context;
         protected int reTryAttempts;
 
@@ -25,6 +26,7 @@ namespace NScheduler.Core.Schedules
         /// </summary>
         internal void SetNextFireTime()
         {
+            previousFireTime = nextFireTime;
             nextFireTime = CalculateNextFireTime();
         }
 

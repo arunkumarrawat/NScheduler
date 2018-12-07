@@ -47,14 +47,14 @@ namespace NScheduler.Core.Schedules
         {
             DateTimeOffset now = DateTimeOffset.Now;
 
-            if (!nextFireTime.HasValue)
+            if (!previousFireTime.HasValue)
                 return null;
             if (finalFireTime.HasValue && finalFireTime < now)
                 return null;
             if (maxRepeats != InfiniteRepeats && maxRepeats == context.TimesRun)
                 return null;
 
-            DateTimeOffset result = nextFireTime.Value;
+            DateTimeOffset result = previousFireTime.Value;
 
             switch (Period)
             {

@@ -19,12 +19,12 @@ namespace NScheduler.Core.Schedules
 
         public override DateTimeOffset? CalculateNextFireTime()
         {
-            if (!nextFireTime.HasValue)
+            if (!previousFireTime.HasValue)
                   return null;
 
-            nextFireTime = nextFireTime.Value.AddDays(1);
-            nextFireTime = dayTime.AdjustTime(nextFireTime.Value);
-            return nextFireTime;
+            DateTimeOffset result = previousFireTime.Value.AddDays(1);
+            result = dayTime.AdjustTime(result);
+            return result;
         }
 
         public virtual DailySchedule SetTimeOfDay(int hour, int minute, int second)
@@ -41,7 +41,8 @@ namespace NScheduler.Core.Schedules
 
         public virtual DailySchedule SetTimeOfDay(int hour)
         {
-            throw new NotImplementedException();
+            dayTime = new DayTime(hour, minute: 0, second: 0);
+            return this as DailySchedule;
         }
 
         public virtual DailySchedule SetTimeOfDay(DateTimeOffset offset)

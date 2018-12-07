@@ -27,7 +27,7 @@ namespace NSchduler.Tests
 
             //await scheduler.ScheduleJob(job2, schedule2);
             //await scheduler.ScheduleJob(job3, schedule3);
-            scheduler.Run();
+            await scheduler.Run();
 
             await Task.Delay(10 * 1000);
 
