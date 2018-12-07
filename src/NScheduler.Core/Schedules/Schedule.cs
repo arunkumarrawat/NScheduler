@@ -13,9 +13,10 @@ namespace NScheduler.Core.Schedules
         protected JobContext context;
         protected DateTimeOffset? finalFireTime;
         protected int maxRepeats = InfiniteRepeats;
-        private int reTryAttempts;
+        protected int reTryAttempts;
 
         public int ReTryAttempts => reTryAttempts;
+
 
         protected Schedule()
         {
@@ -53,32 +54,6 @@ namespace NScheduler.Core.Schedules
         /// Gets exact date & time of scheduled fire 
         /// </summary>
         public DateTimeOffset? GetScheduledFireTime() => scheduledFireTime;
-
-        /// <summary>
-        /// Sets count of re-try attempts
-        /// </summary>
-        /// <param name="reTry"></param>
-        public Schedule SetReTryAttempts(int reTry)
-        {
-            if (reTry < 0)
-            {
-                throw new ArgumentException("Count of re-try attempts should be a non-negative value", nameof(reTry));
-            }
-
-            this.reTryAttempts = reTry;
-            return this;
-        }
-
-        /// <summary>
-        /// Sets schedule as infinite 
-        /// </summary>
-        /// <returns></returns>
-        public virtual Schedule SetInfinite()
-        {
-            this.maxRepeats = InfiniteRepeats;
-            this.finalFireTime = null;
-            return this;
-        }
 
         /// <summary>
         /// Sets maximal count of repeats before jobs is un-scheduled

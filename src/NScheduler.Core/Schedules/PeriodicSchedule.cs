@@ -2,7 +2,12 @@
 
 namespace NScheduler.Core.Schedules
 {
-    public abstract class PeriodicSchedule : Schedule
+    /// <summary>
+    /// Base class for periodic schedules that 
+    /// repeat job once per specified period of time
+    /// </summary>
+    public abstract class PeriodicSchedule<TSchedule> : Schedule<TSchedule> 
+        where TSchedule : Schedule
     {
         public const int DefaultInterval = 1;
 
@@ -13,15 +18,15 @@ namespace NScheduler.Core.Schedules
             this.interval = DefaultInterval;
         }
 
-        public PeriodicSchedule SetInterval(int interval)
+        public TSchedule SetInterval(int interval)
         {
             if (interval <= 0)
             {
-                throw new ArgumentException("Time interval should be a positive value", nameof(interval));
+                 throw new ArgumentException("Time interval should be a positive value", nameof(interval));
             }
 
             this.interval = interval;
-            return this;
+            return this as TSchedule;
         }
 
         internal override DateTimeOffset? CalculateNextFireTime()

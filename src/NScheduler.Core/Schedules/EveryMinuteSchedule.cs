@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NScheduler.Core.Schedules
 {
-    public class EveryMinuteSchedule : PeriodicSchedule
+    public class EveryMinuteSchedule : PeriodicSchedule<EveryMinuteSchedule>
     {
         protected override TimeInterval Period => TimeInterval.Minutes;
     }

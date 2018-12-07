@@ -59,7 +59,7 @@ namespace NScheduler.Core
                         }
 
                         if (!running)
-                              break;
+                               break;
                     }
 
                     DateTimeOffset now = DateTimeOffset.Now;
@@ -94,19 +94,18 @@ namespace NScheduler.Core
                         // check if pause requested
                         // just after jobs fetched
                         bool pauseReq;
-
                         lock (pauseLock)
-                           pauseReq = paused;
+                            pauseReq = paused;
 
                         if (pauseReq)
                         {
-                            // save jobs until resume
+                            // save jobs until next resume
                             lock (jobsQueue)
                             {
                                 foreach (JobHolder jh in nextJobs)
                                    jobsQueue.Add(jh);
+                                continue;
                             }
-                            continue;
                         }
 
                         foreach (JobHolder jh in nextJobs)
@@ -195,9 +194,12 @@ namespace NScheduler.Core
         public async virtual Task Stop()
         {
             Task task = execTask;
-            if (task == null) return;
+            if (task == null || !running) return;
+
             running = false;
             await task.ConfigureAwait(false);
+            task.SafeDispose();
+            execTask = null;
         }
 
         /// <summary>
@@ -206,6 +208,10 @@ namespace NScheduler.Core
         /// <returns></returns>
         public virtual Task Pause()
         {
+            Task task = execTask;
+            if (task == null || !running)
+                return Task.CompletedTask;
+
             lock (pauseLock)
             {
                 paused = true;
