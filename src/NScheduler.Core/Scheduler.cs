@@ -64,7 +64,7 @@ namespace NScheduler.Core
                                break;
                     }
 
-                    DateTimeOffset now = DateTimeOffset.Now;
+                    DateTimeOffset now = Time.Now();
                     nextJobs.Clear();
 
                     lock (jobsQueue)

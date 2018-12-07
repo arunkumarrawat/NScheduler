@@ -44,6 +44,15 @@ namespace NScheduler.Core.Schedules
         /// </summary>
         /// <returns></returns>
         public abstract DateTimeOffset? CalculateNextFireTime();
+
+        /// <summary>
+        /// Creates a clone of this schedule
+        /// </summary>
+        /// <returns></returns>
+        public virtual Schedule Clone()
+        {
+            return MemberwiseClone() as Schedule;
+        }
         
         /// <summary>
         /// Gets exact date & time of scheduled fire 

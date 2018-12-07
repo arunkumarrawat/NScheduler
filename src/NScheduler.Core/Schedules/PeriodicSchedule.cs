@@ -21,7 +21,7 @@ namespace NScheduler.Core.Schedules
 
         public override void SetInitialFireTime()
         {
-            nextFireTime = DateTimeOffset.Now;
+            nextFireTime = Time.Now();
             if (firstFireTime != null)
                   nextFireTime = firstFireTime;
         }

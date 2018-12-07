@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace NScheduler.Core
 {
-    [DebuggerDisplay("{DebugString},nq")]
+    [DebuggerDisplay("{DebugString,nq}")]
     public sealed class DayTime : IEquatable<DayTime>
     {
         private static readonly Range<int> HoursRange;
@@ -30,23 +30,23 @@ namespace NScheduler.Core
             this.second = second;
         }
 
-        private string DebugString => $"[{Hours}:{Minutes}:{Seconds}]";
+        private string DebugString => $"[{Hour:00}:{Minute:00}:{Second:00}]";
 
-        public int Hours => hour;
+        public int Hour => hour;
 
-        public int Minutes => second;
+        public int Minute => minute;
 
-        public int Seconds => second;
+        public int Second => second;
 
-        public DateTimeOffset AdjustTime(DateTimeOffset time)
+        public DateTimeOffset? GetAdjustedTime(DateTimeOffset? time)
         {
-            return new DateTimeOffset(year: time.Year,
-                                      month: time.Month,
-                                      day: time.Day,
-                                      offset: time.Offset,
-                                      hour: hour,
-                                      minute: minute,
-                                      second: second);
+            if (!time.HasValue)
+                return null;
+
+            DateTimeOffset newTime = new DateTimeOffset(time.Value.Date, time.Value.Offset);
+            TimeSpan diff = new TimeSpan(0, Hour, Minute, Second);
+            newTime = newTime.Add(diff);
+            return newTime;
         }
 
         public override bool Equals(object obj)
@@ -60,9 +60,9 @@ namespace NScheduler.Core
         {
             if (other == null)
                   return false;
-            return other.Hours == Hours &&
-                   other.Minutes == Minutes &&
-                   other.Seconds == Seconds;
+            return other.Hour == Hour &&
+                   other.Minute == Minute &&
+                   other.Second == Second;
         }
     }
 }

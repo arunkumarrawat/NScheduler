@@ -67,6 +67,7 @@
     <Compile Include="Schedules\EverySecondSchedule.cs" />
     <Compile Include="Schedules\PeriodicSchedule.cs" />
     <Compile Include="Schedules\Schedule.Generic.cs" />
+    <Compile Include="Time.cs" />
     <Compile Include="TimeInterval.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
