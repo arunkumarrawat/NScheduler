@@ -15,22 +15,10 @@ namespace NScheduler.Core.Schedules
         protected int maxRepeats = InfiniteRepeats;
         protected int reTryAttempts;
 
-        public int ReTryAttempts => reTryAttempts;
-
-
-        protected Schedule()
-        {
-            scheduledFireTime = DateTimeOffset.Now;
-        }
-
         /// <summary>
-        /// Constructor internally used for cloning
+        /// Sets job's context
         /// </summary>
-        /// <param name="schedule"></param>
-        protected internal Schedule(Schedule schedule)
-        {
-        }
-
+        /// <param name="context"></param>
         internal void SetContext(JobContext context)
         {
             this.context = context;
@@ -41,14 +29,24 @@ namespace NScheduler.Core.Schedules
         /// </summary>
         internal void SetNextFireTime()
         {
-            this.scheduledFireTime = CalculateNextFireTime();
+            scheduledFireTime = CalculateNextFireTime();
+        }
+
+
+        /// <summary>
+        /// Allows a schedule to prepare/initialize itself before adding to the 
+        /// queue of running jobs
+        /// </summary>
+        public virtual void Prepare()
+        {
+            scheduledFireTime = DateTimeOffset.Now;
         }
 
         /// <summary>
         /// Calculates exact date & time of the next fire
         /// </summary>
         /// <returns></returns>
-        internal abstract DateTimeOffset? CalculateNextFireTime();
+        public abstract DateTimeOffset? CalculateNextFireTime();
         
         /// <summary>
         /// Gets exact date & time of scheduled fire 
@@ -56,19 +54,9 @@ namespace NScheduler.Core.Schedules
         public DateTimeOffset? GetScheduledFireTime() => scheduledFireTime;
 
         /// <summary>
-        /// Sets maximal count of repeats before jobs is un-scheduled
+        /// Gets max count of re-try attempts before job is considered faulted
         /// </summary>
-        /// <param name="maxRepeats"></param>
-        /// <returns></returns>
-        public Schedule SetMaxRepeats(int maxRepeats)
-        {
-            if (maxRepeats < 0 && maxRepeats != InfiniteRepeats)
-            {
-                throw new ArgumentException("Maximal count of repeats should be a non-negative value", nameof(maxRepeats));
-            }
-            this.maxRepeats = maxRepeats;
-            return this;
-        }
+        public int ReTryAttempts => reTryAttempts;
 
         public Schedule SetFinalFireTime(DateTimeOffset finalTime)
         {

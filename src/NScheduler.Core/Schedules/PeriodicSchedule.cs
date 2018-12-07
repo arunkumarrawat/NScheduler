@@ -29,7 +29,7 @@ namespace NScheduler.Core.Schedules
             return this as TSchedule;
         }
 
-        internal override DateTimeOffset? CalculateNextFireTime()
+        public override DateTimeOffset? CalculateNextFireTime()
         {
             DateTimeOffset now = DateTimeOffset.Now;
 

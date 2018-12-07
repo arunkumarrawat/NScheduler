@@ -16,27 +16,30 @@ namespace NScheduler.Core
         private readonly SortedSet<JobHolder> jobsQueue;
         private readonly List<JobHolder> nextJobs;
         private readonly object pauseLock;
-        private Task execTask;
-        private bool paused;
+        private volatile bool paused;
         private volatile bool running;
+        private volatile Task execTask;
 
         public Scheduler()
         {
             this.jobsQueue = new SortedSet<JobHolder>(NextFireTimeComparator.GetInstance());
             this.nextJobs = new List<JobHolder>();
             this.pauseLock = new object();
-
-            this.running = true;
-            this.paused = false;
         }
 
         /// <summary>
-        /// Runs scheduler
+        /// Entry point to start scheduler's execution
         /// </summary>
         /// <returns></returns>
         public virtual Task Run()
         {
+            if (execTask != null)
+                  return execTask;
+
             Debug("Scheduler starting ...");
+
+            running = true;
+            paused = false;
 
             execTask = Task.Run(() =>
             {
@@ -51,7 +54,6 @@ namespace NScheduler.Core
                             try
                             {
                                 // wait until scheduler resumes
-                                // processing loop
                                 Monitor.Wait(pauseLock, PauseWaitMs);
                             } catch
                             {
@@ -77,8 +79,8 @@ namespace NScheduler.Core
 
                             if (!scheduledFireTime.HasValue)
                             {
-                                jobsQueue.Remove(jh);
-                                continue;
+                                 jobsQueue.Remove(jh);
+                                 continue;
                             }
 
                             if (scheduledFireTime > now)
@@ -168,6 +170,16 @@ namespace NScheduler.Core
         /// <returns></returns>
         public virtual Task ScheduleJob(IJob job, Schedule schedule)
         {
+            if (job == null)
+            {
+                throw new ArgumentNullException(nameof(job), "Job is NULL");
+            }
+
+            if (schedule == null)
+            {
+                throw new ArgumentNullException(nameof(schedule), "Schedule is NULL");
+            }
+
             lock (jobsQueue)
                 jobsQueue.Add(new JobHolder(job, schedule));
             return Task.CompletedTask;
@@ -196,10 +208,14 @@ namespace NScheduler.Core
             Task task = execTask;
             if (task == null || !running) return;
 
+            Debug("Scheduler stopping ...");
+
             running = false;
             await task.ConfigureAwait(false);
             task.SafeDispose();
             execTask = null;
+
+            Debug("Scheduler stopped");
         }
 
         /// <summary>

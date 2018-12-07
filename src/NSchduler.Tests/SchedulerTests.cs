@@ -17,7 +17,9 @@ namespace NSchduler.Tests
         public async Task Test()
         {
             scheduler = new Scheduler();
-            Schedule schedule = new EverySecondSchedule();
+            DailySchedule schedule = new DailySchedule();
+
+            schedule.SetTimeOfDay(06, 48, 00);
 
             WriteDebugTextJob job = new WriteDebugTextJob("Hello 1s span");
             WriteDebugTextJob job2 = new WriteDebugTextJob("Hello 5s span");

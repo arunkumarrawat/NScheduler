@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace NScheduler.Core
 {
+    [DebuggerDisplay("{DebugLine},nq")]
     public sealed class DayTime : IEquatable<DayTime>
     {
         private static readonly Range<int> HoursRange;
@@ -21,20 +19,35 @@ namespace NScheduler.Core
             SecondsRange = new Range<int>(min: 0, max: 59);
         }
 
-        private readonly int hours;
-        private readonly int minutes;
-        private readonly int seconds;
+        private readonly int hour;
+        private readonly int minute;
+        private readonly int second;
 
         public DayTime(int hours, int minutes, int seconds)
         {
-
+            this.hour = hours;
+            this.minute = minutes;
+            this.second = seconds;
         }
 
-        public int Hours => hours;
+        private string DebugLine => $"[{Hours}:{Minutes}:{Seconds}]";
 
-        public int Minutes => seconds;
+        public int Hours => hour;
 
-        public int Seconds => seconds;
+        public int Minutes => second;
+
+        public int Seconds => second;
+
+        public DateTimeOffset GetDateTimeOffset(DateTimeOffset nextTime)
+        {
+            return new DateTimeOffset(year: nextTime.Year,
+                                      month: nextTime.Month,
+                                      day: nextTime.Day,
+                                      offset: nextTime.Offset,
+                                      hour: this.hour,
+                                      minute: this.minute,
+                                      second: this.second);
+        }
 
 
         public bool Equals(DayTime other)

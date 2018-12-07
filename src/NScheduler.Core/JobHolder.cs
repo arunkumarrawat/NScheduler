@@ -12,11 +12,12 @@ namespace NScheduler.Core
 
         public JobHolder(IJob job, Schedule schedule)
         {
+            this.id = Guid.NewGuid();
             this.job = job;
             this.context = new JobContext();
             this.schedule = schedule;
             this.schedule.SetContext(this.context);
-            this.id = Guid.NewGuid();
+            this.schedule.Prepare();
         }
 
         /// <summary>

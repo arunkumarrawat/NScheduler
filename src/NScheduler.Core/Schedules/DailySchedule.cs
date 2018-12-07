@@ -9,6 +9,12 @@ namespace NScheduler.Core.Schedules
     {
         private DayTime dayTime = DayTime.ZeroTime;
 
+        public override void Prepare()
+        {
+            DateTimeOffset now = DateTimeOffset.Now;
+            scheduledFireTime = dayTime.GetDateTimeOffset(now);
+        }
+
         /// <summary>
         /// Gets time of day when the job is triggered
         /// </summary>
@@ -16,20 +22,32 @@ namespace NScheduler.Core.Schedules
 
         public DailySchedule SetTimeOfDay(DayTime dayTime)   
         {
-            this.dayTime = dayTime ?? throw new ArgumentNullException(nameof(dayTime), "DayTime is NULL");
+            if (dayTime == null)
+            {
+                throw new ArgumentNullException(nameof(dayTime), "DayTime is NULL");
+            }
+            this.dayTime = dayTime;
             return this;
         }
 
-        public DailySchedule SetTimeOfDay(int hours, int minutes, int seconds)
+        public DailySchedule SetTimeOfDay(int hour, int minute, int second)
         {
-            this.dayTime = new DayTime(hours, minutes, seconds);
+            this.dayTime = new DayTime(hour, minute, second);
             return this;
         }
 
-        internal override DateTimeOffset? CalculateNextFireTime()
+        public DailySchedule SetTimeOfDay(int hour, int minute) => SetTimeOfDay(hour, minute, second: 0);
+
+        public DailySchedule SetTimeOfDay(int hour) => SetTimeOfDay(hour, minute: 0, second: 0);
+
+        public override DateTimeOffset? CalculateNextFireTime()
         {
-            DateTimeOffset now = DateTimeOffset.Now;
-            return null;
+            if (!scheduledFireTime.HasValue)
+                return null;
+
+            DateTimeOffset nextFireTime = scheduledFireTime.Value.AddDays(1);
+            nextFireTime = dayTime.GetDateTimeOffset(nextFireTime);
+            return nextFireTime;
         }
     }
 }
