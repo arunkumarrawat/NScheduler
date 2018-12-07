@@ -29,10 +29,10 @@ namespace NScheduler.Core.Schedules
         }
 
         /// <summary>
-        /// Allows a schedule to prepare/initialize itself before adding to the 
-        /// queue of running jobs
+        /// Allows a schedule to set initial fire time and 
+        /// prepare itself before being enqueued into engine
         /// </summary>
-        public virtual void Initialze()
+        public virtual void SetInitialFireTime()
         {
             nextFireTime = DateTimeOffset.Now;
         }

@@ -3,14 +3,14 @@ using System.Diagnostics;
 
 namespace NScheduler.Core
 {
-    [DebuggerDisplay("{DebugLine},nq")]
+    [DebuggerDisplay("{DebugString},nq")]
     public sealed class DayTime : IEquatable<DayTime>
     {
         private static readonly Range<int> HoursRange;
         private static readonly Range<int> MinutesRange;
         private static readonly Range<int> SecondsRange;
 
-        public static DayTime ZeroTime => new DayTime(hours: 0, minutes: 0, seconds: 0);
+        public static DayTime ZeroTime => new DayTime(hour: 0, minute: 0, second: 0);
 
         static DayTime()
         {
@@ -23,14 +23,14 @@ namespace NScheduler.Core
         private readonly int minute;
         private readonly int second;
 
-        public DayTime(int hours, int minutes, int seconds)
+        public DayTime(int hour, int minute, int second)
         {
-            this.hour = hours;
-            this.minute = minutes;
-            this.second = seconds;
+            this.hour = hour;
+            this.minute = minute;
+            this.second = second;
         }
 
-        private string DebugLine => $"[{Hours}:{Minutes}:{Seconds}]";
+        private string DebugString => $"[{Hours}:{Minutes}:{Seconds}]";
 
         public int Hours => hour;
 
@@ -38,17 +38,23 @@ namespace NScheduler.Core
 
         public int Seconds => second;
 
-        public DateTimeOffset GetDateTimeOffset(DateTimeOffset nextTime)
+        public DateTimeOffset AdjustTime(DateTimeOffset time)
         {
-            return new DateTimeOffset(year: nextTime.Year,
-                                      month: nextTime.Month,
-                                      day: nextTime.Day,
-                                      offset: nextTime.Offset,
-                                      hour: this.hour,
-                                      minute: this.minute,
-                                      second: this.second);
+            return new DateTimeOffset(year: time.Year,
+                                      month: time.Month,
+                                      day: time.Day,
+                                      offset: time.Offset,
+                                      hour: hour,
+                                      minute: minute,
+                                      second: second);
         }
 
+        public override bool Equals(object obj)
+        {
+            if (!(obj is DayTime other))
+                return false;
+            return Equals(other);
+        }
 
         public bool Equals(DayTime other)
         {

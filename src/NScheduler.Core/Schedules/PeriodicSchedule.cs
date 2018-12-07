@@ -6,19 +6,27 @@ namespace NScheduler.Core.Schedules
     /// Base class for periodic schedules that 
     /// repeat job once per specified period of time
     /// </summary>
-    public abstract class PeriodicSchedule<TSchedule> : Schedule<TSchedule> 
-        where TSchedule : Schedule
+    public abstract class PeriodicSchedule<TSchedule> : Schedule<TSchedule>
+        where TSchedule : Schedule 
     {
-        public const int DefaultInterval = 1;
+        public const int PresetInterval = 1;
 
-        protected int interval;
+        protected int interval = PresetInterval;
+        protected DateTimeOffset? firstFireTime;
 
-        protected PeriodicSchedule()
+        /// <summary>
+        /// Gets type of time interval
+        /// </summary>
+        public abstract TimeInterval Period { get; }
+
+        public override void SetInitialFireTime()
         {
-            this.interval = DefaultInterval;
+            nextFireTime = DateTimeOffset.Now;
+            if (firstFireTime != null)
+                  nextFireTime = firstFireTime;
         }
-
-        public TSchedule SetInterval(int interval)
+    
+        public virtual TSchedule SetInterval(int interval)
         {
             if (interval <= 0)
             {
@@ -26,6 +34,12 @@ namespace NScheduler.Core.Schedules
             }
 
             this.interval = interval;
+            return this as TSchedule;
+        }
+
+        public virtual TSchedule SetFirstFireTime(DateTimeOffset fireTime)
+        {
+            firstFireTime = fireTime;
             return this as TSchedule;
         }
 
@@ -75,7 +89,5 @@ namespace NScheduler.Core.Schedules
 
             return result;
         }
-
-        protected abstract TimeInterval Period { get; }
     }
 }

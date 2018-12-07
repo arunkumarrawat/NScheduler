@@ -8,6 +8,6 @@ namespace NScheduler.Core.Schedules
 {
     public class EverySecondSchedule : PeriodicSchedule<EverySecondSchedule>
     {
-        protected override TimeInterval Period => TimeInterval.Seconds;
+        public override TimeInterval Period => TimeInterval.Seconds;
     }
 }

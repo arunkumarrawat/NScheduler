@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace NScheduler.Core.Schedules
 {
-    public class EveryMinuteSchedule : PeriodicSchedule<EveryMinuteSchedule>
+    public class AnnualSchedule : PeriodicSchedule<AnnualSchedule>
     {
-        public override TimeInterval Period => TimeInterval.Minutes;
+        public sealed override TimeInterval Period => TimeInterval.Years;
     }
 }

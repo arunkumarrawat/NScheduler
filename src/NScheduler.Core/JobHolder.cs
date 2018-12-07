@@ -17,7 +17,7 @@ namespace NScheduler.Core
             this.context = new JobContext();
             this.schedule = schedule;
             this.schedule.SetContext(this.context);
-            this.schedule.Initialze();
+            this.schedule.SetInitialFireTime();
         }
 
         /// <summary>

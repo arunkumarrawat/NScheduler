@@ -9,36 +9,13 @@ namespace NScheduler.Core.Schedules
     {
         private DayTime dayTime = DayTime.ZeroTime;
 
-        public override void Initialze()
-        {
-            DateTimeOffset now = DateTimeOffset.Now;
-            nextFireTime = dayTime.GetDateTimeOffset(now);
-        }
-
-        /// <summary>
-        /// Gets time of day when the job is triggered
-        /// </summary>
         public DayTime TimeOfDay => dayTime;
 
-        public DailySchedule SetTimeOfDay(DayTime dayTime)   
+        public override void SetInitialFireTime()
         {
-            if (dayTime == null)
-            {
-                throw new ArgumentNullException(nameof(dayTime), "DayTime is NULL");
-            }
-            this.dayTime = dayTime;
-            return this;
+            DateTimeOffset now = DateTimeOffset.Now;
+            nextFireTime = dayTime.AdjustTime(now);
         }
-
-        public DailySchedule SetTimeOfDay(int hour, int minute, int second)
-        {
-            this.dayTime = new DayTime(hour, minute, second);
-            return this;
-        }
-
-        public DailySchedule SetTimeOfDay(int hour, int minute) => SetTimeOfDay(hour, minute, second: 0);
-
-        public DailySchedule SetTimeOfDay(int hour) => SetTimeOfDay(hour, minute: 0, second: 0);
 
         public override DateTimeOffset? CalculateNextFireTime()
         {
@@ -46,8 +23,30 @@ namespace NScheduler.Core.Schedules
                   return null;
 
             nextFireTime = nextFireTime.Value.AddDays(1);
-            nextFireTime = dayTime.GetDateTimeOffset(nextFireTime.Value);
+            nextFireTime = dayTime.AdjustTime(nextFireTime.Value);
             return nextFireTime;
+        }
+
+        public virtual DailySchedule SetTimeOfDay(int hour, int minute, int second)
+        {
+            dayTime = new DayTime(hour, minute, second);
+            return this as DailySchedule;
+        }
+
+        public virtual DailySchedule SetTimeOfDay(int hour, int minute)
+        {
+            dayTime = new DayTime(hour, minute, second: 0);
+            return this as DailySchedule;
+        }
+
+        public virtual DailySchedule SetTimeOfDay(int hour)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual DailySchedule SetTimeOfDay(DateTimeOffset offset)
+        {
+            throw new NotImplementedException();
         }
     }
 }

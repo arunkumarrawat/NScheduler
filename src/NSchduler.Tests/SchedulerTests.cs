@@ -17,9 +17,7 @@ namespace NSchduler.Tests
         public async Task Test()
         {
             scheduler = new Scheduler();
-            DailySchedule schedule = new DailySchedule();
-
-            schedule.SetTimeOfDay(06, 48, 00);
+            EverySecondSchedule schedule = new EverySecondSchedule();
 
             WriteDebugTextJob job = new WriteDebugTextJob("Hello 1s span");
             WriteDebugTextJob job2 = new WriteDebugTextJob("Hello 5s span");
@@ -29,7 +27,19 @@ namespace NSchduler.Tests
 
             //await scheduler.ScheduleJob(job2, schedule2);
             //await scheduler.ScheduleJob(job3, schedule3);
+            scheduler.Run();
+
+            await Task.Delay(10 * 1000);
+
+            await scheduler.Pause();
+
+            await Task.Delay(10 * 1000);
+
+            await scheduler.Resume();
+
+
             await scheduler.Run();
+
         }              
     }
 }
