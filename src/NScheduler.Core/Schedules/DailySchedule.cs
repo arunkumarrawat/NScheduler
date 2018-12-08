@@ -22,8 +22,7 @@ namespace NScheduler.Core.Schedules
                   return null;
 
             DateTimeOffset result = previousFireTime.Value.AddDays(1);
-            result = dayTime.GetAdjustedTime(result).Value;
-            return result;
+            return dayTime.GetAdjustedTime(result).Value;
         }
 
         public virtual DailySchedule SetTimeOfDay(int hour, int minute, int second)

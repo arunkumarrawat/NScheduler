@@ -1,4 +1,6 @@
-﻿using System;
+﻿using NLog;
+using NLog.Fluent;
+using System;
 using System.Threading.Tasks;
 
 namespace NScheduler.Core.Schedules
@@ -8,6 +10,7 @@ namespace NScheduler.Core.Schedules
     /// </summary>
     public abstract class Schedule
     {
+        private readonly Logger log; 
         protected readonly DateTimeOffset createdOn;
         protected DateTimeOffset? nextFireTime;
         protected DateTimeOffset? previousFireTime;
@@ -17,20 +20,23 @@ namespace NScheduler.Core.Schedules
         protected Schedule()
         {
             createdOn = Time.Now();
+            log = LogManager.GetCurrentClassLogger();
         }
 
         /// <summary>
-        /// Asynchronously waits until schedule reaches fire time
+        /// Asynchronously waits until schedule reaches its fire time
         /// </summary>
         /// <param name="time"></param>
         /// <returns></returns>
         internal async Task WaitUntilFire()
         {
-            DateTimeOffset now = Time.Now();
             if (!nextFireTime.HasValue)
                   return;
 
-            TimeSpan diff = nextFireTime.Value.Subtract(now);
+            TimeSpan diff = nextFireTime.Value.Subtract(Time.Now());
+
+            log.Debug($"Time to wait (ms): {diff.Milliseconds}");
+
             if (diff.Ticks > 0)
                   await Task.Delay(diff);
         }

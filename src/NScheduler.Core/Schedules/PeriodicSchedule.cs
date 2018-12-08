@@ -19,9 +19,9 @@ namespace NScheduler.Core.Schedules
         /// </summary>
         public abstract TimeInterval Period { get; }
 
-        public override void SetInitialFireTime()
+        public sealed override void SetInitialFireTime()
         {
-            nextFireTime = Time.Now();
+            nextFireTime = createdOn;
             if (firstFireTime != null)
                   nextFireTime = firstFireTime;
         }
@@ -37,15 +37,34 @@ namespace NScheduler.Core.Schedules
             return this as TSchedule;
         }
 
+        /// <summary>
+        /// Sets exact date & time of the first fire
+        /// </summary>
+        /// <param name="fireTime"></param>
+        /// <returns></returns>
         public virtual TSchedule SetFirstFireTime(DateTimeOffset fireTime)
         {
             firstFireTime = fireTime;
             return this as TSchedule;
         }
 
+        public virtual TSchedule SetFirstFireTimeTodayAt(int hour, int minute, int second)
+        {
+            DayTime dt = new DayTime(hour, minute, second);
+            firstFireTime = dt.GetAdjustedTime(Time.Now());
+            return this as TSchedule;
+        }
+
+        public virtual TSchedule SetFirstFireTimeTodayAt(int hour, int minute)
+        {
+            DayTime dt = new DayTime(hour, minute, second: 0);
+            firstFireTime = dt.GetAdjustedTime(Time.Now());
+            return this as TSchedule;
+        }
+
         public override DateTimeOffset? CalculateNextFireTime()
         {
-            DateTimeOffset now = DateTimeOffset.Now;
+            DateTimeOffset now = Time.Now();
 
             if (!previousFireTime.HasValue)
                 return null;

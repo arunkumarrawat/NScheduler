@@ -23,6 +23,8 @@ namespace NSchduler.Tests
             WriteDebugTextJob job2 = new WriteDebugTextJob("Hello 5s span");
             WriteDebugTextJob job3 = new WriteDebugTextJob("Hello 10s span");
 
+            schedule.SetFirstFireTimeTodayAt(06, 53);
+
             await scheduler.ScheduleJob(job, schedule);
 
   
