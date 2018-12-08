@@ -13,7 +13,7 @@ namespace NScheduler.Core.Schedules
         private readonly Logger log; 
         protected readonly DateTimeOffset createdOn;
         protected DateTimeOffset? nextFireTime;
-        protected DateTimeOffset? previousFireTime;
+        protected DateTimeOffset? prevFireTime;
         protected JobContext context;
         protected int reTryAttempts;
 
@@ -26,12 +26,10 @@ namespace NScheduler.Core.Schedules
         /// <summary>
         /// Asynchronously waits until schedule reaches its fire time
         /// </summary>
-        /// <param name="time"></param>
-        /// <returns></returns>
         internal async Task WaitUntilFire()
         {
             if (!nextFireTime.HasValue)
-                  return;
+                   return;
 
             TimeSpan diff = nextFireTime.Value.Subtract(Time.Now());
 
@@ -55,7 +53,7 @@ namespace NScheduler.Core.Schedules
         /// </summary>
         internal void SetNextFireTime()
         {
-            previousFireTime = nextFireTime;
+            prevFireTime = nextFireTime;
             nextFireTime = CalculateNextFireTime();
         }
 
@@ -73,6 +71,15 @@ namespace NScheduler.Core.Schedules
         /// </summary>
         /// <returns></returns>
         public abstract DateTimeOffset? CalculateNextFireTime();
+
+        /// <summary>
+        /// Updates schedule for a new time
+        /// </summary>
+        /// <param name="misfireTime"></param>
+        /// <param name="diff"></param>
+        public virtual void OnMisfired(DateTimeOffset misfireTime, TimeSpan diff)
+        {
+        }
 
         /// <summary>
         /// Creates a clone of this schedule

@@ -13,7 +13,7 @@ namespace NScheduler.Core
         private const int PauseWaitMs = 1000;
         private static readonly TimeSpan deltaTime = TimeSpan.FromMilliseconds(5 * 1000);
 
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger log = LogManager.GetCurrentClassLogger();
         private readonly SortedSet<JobHolder> jobsQueue;
         private readonly List<JobHolder> nextJobs;
         private readonly object pauseLock;
@@ -37,14 +37,14 @@ namespace NScheduler.Core
             if (execTask != null)
                   return execTask;
 
-            Debug("Scheduler starting ...");
+            log.Debug("Scheduler starting ...");
 
             running = true;
             paused = false;
 
             execTask = Task.Run(() =>
             {
-                Debug("Scheduler started");
+                log.Debug("Scheduler started");
 
                 while (running)
                 {
@@ -83,6 +83,19 @@ namespace NScheduler.Core
                             if (!nextFireTime.HasValue)
                             {
                                 jobsQueue.Remove(jh);
+                                continue;
+                            }
+
+                            if (nextFireTime < now)
+                            {
+                                jobsQueue.Remove(jh);
+
+                                // check for misfire
+                                TimeSpan diff = now - nextFireTime.Value;
+                                jh.Schedule.OnMisfired(now, diff);
+
+                                if (jh.Schedule.GetNextFireTime() != null)
+                                      jobsQueue.Add(jh);
                                 continue;
                             }
 
@@ -155,15 +168,9 @@ namespace NScheduler.Core
                     }
                 }
 
-                Debug("Scheduler shutting down ...");
+                log.Debug("Scheduler shutting down ...");
             });
             return execTask;
-        }
-
-        protected void Debug(string msg)
-        {
-            if (logger.IsDebugEnabled)
-                  logger.Debug(msg);
         }
 
         /// <summary>
@@ -225,14 +232,14 @@ namespace NScheduler.Core
             Task task = execTask;
             if (task == null || !running) return;
 
-            Debug("Scheduler stopping ...");
+            log.Debug("Scheduler stopping ...");
 
             running = false;
             await task.ConfigureAwait(false);
             task.SafeDispose();
             execTask = null;
 
-            Debug("Scheduler stopped");
+            log.Debug("Scheduler stopped");
         }
 
         /// <summary>

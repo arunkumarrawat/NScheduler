@@ -64,6 +64,13 @@ namespace NScheduler.Core
             this.second = second;
         }
 
+        public DayTime(TimeSpan ts)
+        {
+            this.hour = ts.Hours;
+            this.minute = ts.Minutes;
+            this.second = ts.Seconds;
+        }
+
         public DayTime(int hour, int minute): this(hour, minute, second: 0)
         {
         }
