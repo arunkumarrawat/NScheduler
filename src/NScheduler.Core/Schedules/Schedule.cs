@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace NScheduler.Core.Schedules
 {
@@ -7,10 +8,32 @@ namespace NScheduler.Core.Schedules
     /// </summary>
     public abstract class Schedule
     {
+        protected readonly DateTimeOffset createdOn;
         protected DateTimeOffset? nextFireTime;
         protected DateTimeOffset? previousFireTime;
         protected JobContext context;
         protected int reTryAttempts;
+
+        protected Schedule()
+        {
+            createdOn = Time.Now();
+        }
+
+        /// <summary>
+        /// Asynchronously waits until schedule reaches fire time
+        /// </summary>
+        /// <param name="time"></param>
+        /// <returns></returns>
+        internal async Task WaitUntilFire()
+        {
+            DateTimeOffset now = Time.Now();
+            if (!nextFireTime.HasValue)
+                  return;
+
+            TimeSpan diff = nextFireTime.Value.Subtract(now);
+            if (diff.Ticks > 0)
+                  await Task.Delay(diff);
+        }
 
         /// <summary>
         /// Sets job's context
@@ -36,7 +59,7 @@ namespace NScheduler.Core.Schedules
         /// </summary>
         public virtual void SetInitialFireTime()
         {
-            nextFireTime = DateTimeOffset.Now;
+            nextFireTime = createdOn;
         }
 
         /// <summary>

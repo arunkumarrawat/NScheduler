@@ -13,8 +13,7 @@ namespace NScheduler.Core.Schedules
 
         public override void SetInitialFireTime()
         {
-            DateTimeOffset now = Time.Now();
-            nextFireTime = dayTime.GetAdjustedTime(now);
+            nextFireTime = dayTime.GetAdjustedTime(createdOn);
         }
 
         public override DateTimeOffset? CalculateNextFireTime()

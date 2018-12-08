@@ -45,8 +45,7 @@ namespace NScheduler.Core
 
             DateTimeOffset newTime = new DateTimeOffset(time.Value.Date, time.Value.Offset);
             TimeSpan diff = new TimeSpan(0, Hour, Minute, Second);
-            newTime = newTime.Add(diff);
-            return newTime;
+            return newTime.Add(diff);
         }
 
         public override bool Equals(object obj)

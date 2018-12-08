@@ -11,6 +11,7 @@ namespace NScheduler.Core
     public class Scheduler
     {
         private const int PauseWaitMs = 1000;
+        private static readonly TimeSpan deltaTime = TimeSpan.FromMilliseconds(5 * 1000);
 
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private readonly SortedSet<JobHolder> jobsQueue;
@@ -18,7 +19,7 @@ namespace NScheduler.Core
         private readonly object pauseLock;
         private volatile bool paused;
         private volatile bool running;
-        private volatile Task execTask;
+        private Task execTask;
 
         public Scheduler()
         {
@@ -65,6 +66,8 @@ namespace NScheduler.Core
                     }
 
                     DateTimeOffset now = Time.Now();
+                    DateTimeOffset endTime = now.Add(deltaTime);
+                                             
                     nextJobs.Clear();
 
                     lock (jobsQueue)
@@ -83,9 +86,9 @@ namespace NScheduler.Core
                                 continue;
                             }
 
-                            if (nextFireTime > now)
+                            if (nextFireTime > endTime)
                                   break;
-
+                        
                             nextJobs.Add(jh);
                             jobsQueue.Remove(jh);
                         }                                                                        
@@ -116,6 +119,7 @@ namespace NScheduler.Core
                             {
                                 try
                                 {
+                                    await jh.Schedule.WaitUntilFire();
                                     await jh.Job.Execute(jh.Context);
                                     jh.Context.OnJobExecuted(jh);
                                     lock (jobsQueue) jobsQueue.Add(jh);
