@@ -9,8 +9,6 @@ namespace NScheduler.Core.Schedules
     {
         private DayTime dayTime = DayTime.ZeroTime;
 
-        public DayTime TimeOfDay => dayTime;
-
         public override void SetInitialFireTime()
         {
             nextFireTime = dayTime.GetAdjustedTime(createdOn);
@@ -43,7 +41,7 @@ namespace NScheduler.Core.Schedules
         {
             DayTime dt;
             if (!DayTime.TryParse(time, out dt))
-                throw new ArgumentException("Invalid time format", nameof(time));
+                  throw new ArgumentException("Invalid time format", nameof(time));
             dayTime = dt;
             return this;
         }
@@ -58,6 +56,11 @@ namespace NScheduler.Core.Schedules
         {
             dayTime = new DayTime(ts);
             return this;
+        }
+
+        public override void HandleMisfire(DateTimeOffset misfireTime, TimeSpan diff)
+        {
+           
         }
     }
 }

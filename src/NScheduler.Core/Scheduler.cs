@@ -11,7 +11,7 @@ namespace NScheduler.Core
     public class Scheduler
     {
         private const int PauseWaitMs = 1000;
-        private static readonly TimeSpan deltaTime = TimeSpan.FromMilliseconds(5 * 1000);
+        private static readonly TimeSpan timeDelta = TimeSpan.FromMilliseconds(5 * 1000);
 
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
         private readonly SortedSet<JobHolder> jobsQueue;
@@ -23,9 +23,9 @@ namespace NScheduler.Core
 
         public Scheduler()
         {
-            this.jobsQueue = new SortedSet<JobHolder>(NextFireTimeComparator.GetInstance());
-            this.nextJobs = new List<JobHolder>();
-            this.pauseLock = new object();
+            jobsQueue = new SortedSet<JobHolder>(NextFireTimeComparator.GetInstance());
+            nextJobs = new List<JobHolder>();
+            pauseLock = new object();
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace NScheduler.Core
                     }
 
                     DateTimeOffset now = Time.Now();
-                    DateTimeOffset endTime = now.Add(deltaTime);
+                    DateTimeOffset endTime = now.Add(timeDelta);
                                              
                     nextJobs.Clear();
 
@@ -92,7 +92,7 @@ namespace NScheduler.Core
 
                                 // check for misfire
                                 TimeSpan diff = now - nextFireTime.Value;
-                                jh.Schedule.OnMisfired(now, diff);
+                                jh.Schedule.HandleMisfire(now, diff);
 
                                 if (jh.Schedule.GetNextFireTime() != null)
                                       jobsQueue.Add(jh);

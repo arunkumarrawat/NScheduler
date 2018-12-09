@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace NScheduler.Core
 {
     [DebuggerDisplay("{DebugString,nq}")]
-    public sealed class DayTime : IEquatable<DayTime>
+    public sealed class DayTime
     {
         private static readonly Range<int> HoursRange;
         private static readonly Range<int> MinutesRange;
@@ -66,9 +66,9 @@ namespace NScheduler.Core
 
         public DayTime(TimeSpan ts)
         {
-            this.hour = ts.Hours;
-            this.minute = ts.Minutes;
-            this.second = ts.Seconds;
+            hour = ts.Hours;
+            minute = ts.Minutes;
+            second = ts.Seconds;
         }
 
         public DayTime(int hour, int minute): this(hour, minute, second: 0)
@@ -109,13 +109,7 @@ namespace NScheduler.Core
 
         public override bool Equals(object obj)
         {
-            if (!(obj is DayTime other))
-                  return false;
-            return Equals(other);
-        }
-
-        public bool Equals(DayTime other)
-        {
+            DayTime other = obj as DayTime;
             if (other == null)
                   return false;
             return other.Hour == Hour &&

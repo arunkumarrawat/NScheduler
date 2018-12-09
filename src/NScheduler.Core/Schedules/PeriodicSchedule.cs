@@ -62,12 +62,13 @@ namespace NScheduler.Core.Schedules
             return this as TSchedule;
         }
 
-        public override void OnMisfired(DateTimeOffset misfireTime, TimeSpan diff)
+        public override void HandleMisfire(DateTimeOffset misfireTime, TimeSpan diff)
         {
+            nextFireTime = misfireTime;
+
             if (finalFireTime.HasValue && finalFireTime < misfireTime)
                   nextFireTime = null;
-
-            this.nextFireTime = misfireTime;
+            prevFireTime = nextFireTime;
         }
 
         public override DateTimeOffset? CalculateNextFireTime()

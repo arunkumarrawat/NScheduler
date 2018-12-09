@@ -1,5 +1,4 @@
 ﻿using NLog;
-using NLog.Fluent;
 using System;
 using System.Threading.Tasks;
 
@@ -16,6 +15,7 @@ namespace NScheduler.Core.Schedules
         protected DateTimeOffset? prevFireTime;
         protected JobContext context;
         protected int reTryAttempts;
+        protected int timesRun;
 
         protected Schedule()
         {
@@ -32,8 +32,7 @@ namespace NScheduler.Core.Schedules
                    return;
 
             TimeSpan diff = nextFireTime.Value.Subtract(Time.Now());
-
-            log.Debug($"Time to wait (ms): {diff.Milliseconds}");
+            log.Debug($"Time until fire: {diff:fffff}");
 
             if (diff.Ticks > 0)
                   await Task.Delay(diff);
@@ -53,6 +52,7 @@ namespace NScheduler.Core.Schedules
         /// </summary>
         internal void SetNextFireTime()
         {
+            timesRun++;
             prevFireTime = nextFireTime;
             nextFireTime = CalculateNextFireTime();
         }
@@ -77,9 +77,7 @@ namespace NScheduler.Core.Schedules
         /// </summary>
         /// <param name="misfireTime"></param>
         /// <param name="diff"></param>
-        public virtual void OnMisfired(DateTimeOffset misfireTime, TimeSpan diff)
-        {
-        }
+        public abstract void HandleMisfire(DateTimeOffset misfireTime, TimeSpan diff);
 
         /// <summary>
         /// Creates a clone of this schedule

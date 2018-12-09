@@ -51,7 +51,6 @@
   <ItemGroup>
     <Compile Include="ActionJob.cs" />
     <Compile Include="DayTime.cs" />
-    <Compile Include="Ensure.cs" />
     <Compile Include="IJob.cs" />
     <Compile Include="JobContext.cs" />
     <Compile Include="JobHolder.cs" />
